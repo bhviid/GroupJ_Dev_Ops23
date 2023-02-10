@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
 using MiniTwit.Shared;
-using MiniTwit.Shared.Core;
 
 namespace MiniTwit.Server.Controllers;
 

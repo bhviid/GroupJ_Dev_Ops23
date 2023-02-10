@@ -12,12 +12,14 @@
             {
                 <span>this is you!</span>
             }
+            <span></span>
             @if(Followed)
-            {
+            {}
                 <span>You are currently following this user.</span>
                 <a class=unfollow href="url_for('unfollow_user', username=profile_user.username)">Unfollow user</a>.
             }
-            else {
+            else 
+            {
                 <span>You are not yet following this user.</span>
                 <a class=follow href="{{ url_for('follow_user', username=profile_user.username)
                     }}">Follow user</a>.
@@ -70,5 +72,5 @@
 
     public string endpoint {get; set;}
 
-    public List<Message> Messages { get; set; }
+    public List<Message> Messages { get; set; } = new List<Message>();
 }
