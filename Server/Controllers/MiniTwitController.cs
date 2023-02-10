@@ -60,7 +60,16 @@ public class MiniTwitController : ControllerBase
         }
         return messages;
     }
-        
+
+    [HttpGet]
+    [Route("md5/{email}/{size}")]
+    public string Md5Hash(string email, int size)
+    {
+        //Must be here since MD5 is disabled in blazor wasm...
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
+        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed)}?d=identicon&s={size}";
+    }
 
     [HttpPost]
     [Route(("/register"))]
