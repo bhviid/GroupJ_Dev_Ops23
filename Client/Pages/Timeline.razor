@@ -48,7 +48,8 @@
         @foreach (var msg in Messages)
         {
             <li>
-                <img src=@gravatar("test@example.com")>
+                @* Replace text@example.com with msg.email, msg.author.email*@
+                <img src=@gravatars[testEmail]>
                 <p>
                     <strong><a href="{{ url_for('user_timeline', username=message.username)}}">@msg.AuthorId</a></strong>
                     @msg.Text
@@ -75,20 +76,21 @@
     public string endpoint {get; set;} = "timeline";
 
     public List<Message> Messages { get; set; } = new List<Message>();
+    private Dictionary<string, string> gravatars;
+    private int gravatarSize = 48;
+
+    private string testEmail = "test@example.com";
 
     protected override async Task OnInitializedAsync()
     {
         var res = await http.GetFromJsonAsync<Message[]>("/minitwit");
-        Messages = res!.ToList();
-    }
-
-    protected string gravatar(string email, int size = 80)
-    {
         
-        using var md5 = MD5.Create();
-        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
-        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed)}?d=identicon&s={size}";
-        //'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
-        //(md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
+        gravatars = new Dictionary<string, string>();
+        foreach(var m in res)
+        {
+            // TODO: Somehow get the email of message author.
+            gravatars[testEmail] = await http.GetStringAsync($"/minitwit/md5/{testEmail}/{gravatarSize}");
+        }
+        Messages = res!.ToList();
     }
 }
