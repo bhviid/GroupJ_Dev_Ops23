@@ -9,14 +9,15 @@ namespace MiniTwit.Server.Controllers;
 [Route("[controller]")]
 public class MiniTwitController : ControllerBase
 {
-    SQLiteConnection sqliteConn = CreateConnection();
+    SQLiteConnection _sqliteConn;
 
     static SQLiteConnection CreateConnection()
     {
-        var sqliteConn = new SQLiteConnection("DataSource=tmp/minitwit.db;Version=3;");
+        var sqliteConn = new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;");
         try
         {
             sqliteConn.Open();
+            Console.WriteLine("Database connection established");
         }
         catch (System.Exception ex)
         {
@@ -30,6 +31,7 @@ public class MiniTwitController : ControllerBase
     public MiniTwitController(ILogger<MiniTwitController> logger)
     {
         _logger = logger;
+        _sqliteConn = CreateConnection();
     }
 
     [HttpGet]

@@ -1,0 +1,74 @@
+@page "/public"
+
+
+<h2>public timeline</h2>
+@if (User is not null)
+{
+    if(endpoint == "user_timeline")
+    {
+        <div class=followstatus>
+            @*am I on my own timeline?*@
+            @if(User.UserId == ProfileUser.UserId)
+            {
+                <span>this is you!</span>
+            }
+            @if(Followed)
+            {
+                <span>You are currently following this user.</span>
+                <a class=unfollow href="url_for('unfollow_user', username=profile_user.username)">Unfollow user</a>.
+            }
+            else {
+                <span>You are not yet following this user.</span>
+                <a class=follow href="{{ url_for('follow_user', username=profile_user.username)
+                    }}">Follow user</a>.
+            }
+        </div>    
+    }
+    else if (endpoint == "timeline")
+    {
+        <div class=twitbox>
+        <h3>What's on your mind {{ g.user.username }}?</h3>
+        <form action="{{ url_for('add_message') }}" method=post>
+            <p>
+                <input type=text name=text size=60>
+                    
+                <input type=submit value="Share">
+            </p>
+        </form>
+        </div>
+    }
+}
+<ul class=messages>
+    @if (Messages.Any())
+    {
+        @foreach (var msg in Messages)
+        {
+            <li>
+                <img src="{{ message.email|gravatar(size=48) }}">
+                <p>
+                    <strong><a href="{{ url_for('user_timeline', username=message.username)}}">@msg.AuthorId</a></strong>
+                    @msg.Text
+                    <small>&mdash; @msg.PubDate?.ToString("yyyy MM dd @ t", DateTimeFormatInfo.InvariantInfo) </small>
+                </p>
+            </li>
+        }
+    }
+    else 
+    {
+        <li><em>There's no message so far.</em></li>
+    }
+</ul>
+
+@code 
+{
+    [CascadingParameter]
+    public User? User {get; set;}
+
+    public bool Followed { get; set; }
+
+    public User ProfileUser { get; set; }
+
+    public string endpoint {get; set;}
+
+    public List<Message> Messages { get; set; }
+}
