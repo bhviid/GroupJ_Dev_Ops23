@@ -1,4 +1,6 @@
 @page "/public"
+@using System.Security.Cryptography;
+@inject HttpClient http
 
 
 <h2>public timeline</h2>
@@ -46,11 +48,11 @@
         @foreach (var msg in Messages)
         {
             <li>
-                <img src="{{ message.email|gravatar(size=48) }}">
+                <img src=@gravatar("test@example.com")>
                 <p>
                     <strong><a href="{{ url_for('user_timeline', username=message.username)}}">@msg.AuthorId</a></strong>
                     @msg.Text
-                    <small>&mdash; @msg.PubDate?.ToString("yyyy MM dd @ t", DateTimeFormatInfo.InvariantInfo) </small>
+                    <small>&mdash; @msg.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
                 </p>
             </li>
         }
@@ -70,7 +72,23 @@
 
     public User ProfileUser { get; set; }
 
-    public string endpoint {get; set;}
+    public string endpoint {get; set;} = "timeline";
 
     public List<Message> Messages { get; set; } = new List<Message>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await http.GetFromJsonAsync<Message[]>("/minitwit");
+        Messages = res!.ToList();
+    }
+
+    protected string gravatar(string email, int size = 80)
+    {
+        
+        using var md5 = MD5.Create();
+        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
+        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed)}?d=identicon&s={size}";
+        //'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
+        //(md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
+    }
 }

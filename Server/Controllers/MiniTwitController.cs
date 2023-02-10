@@ -36,8 +36,31 @@ public class MiniTwitController : ControllerBase
     [HttpGet]
     public IEnumerable<Message> GetAllMessages()
     {
-        throw new NotImplementedException();
+        var perPage = 30;
+        var SQL = @$"select message.*, user.* from message, user
+        where message.flagged = 0 and message.author_id = user.user_id
+        order by message.pub_date desc limit {perPage}";
+
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        var s = sqlCmd.ExecuteReader();
+        
+        var messages = new List<Message>();
+        while (s.Read())
+        {
+            var message = new Message()
+            {
+                MessageId = s.GetInt32(0),
+                AuthorId = s.GetInt32(1),
+                Text = s.GetString(2),
+                PubDate =  new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(s.GetInt32(3)),
+                Flagged = s.GetInt32(4)
+            };
+            messages.Add(message);
+        }
+        return messages;
     }
+        
 
     [HttpPost]
     [Route(("/register"))]
