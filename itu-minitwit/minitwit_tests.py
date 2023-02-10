@@ -8,9 +8,11 @@
     :copyright: (c) 2010 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
+import requests
 import minitwit
 import unittest
 import tempfile
+import json
 
 
 class MiniTwitTestCase(unittest.TestCase):
@@ -19,6 +21,8 @@ class MiniTwitTestCase(unittest.TestCase):
         """Before each test, set up a blank database"""
         self.db = tempfile.NamedTemporaryFile()
         self.app = minitwit.app.test_client()
+        self.url = 'http://localhost:5235'
+        self.decoding = "utf-8"
         minitwit.DATABASE = self.db.name
         minitwit.init_db()
 
@@ -30,19 +34,21 @@ class MiniTwitTestCase(unittest.TestCase):
             password2 = password
         if email is None:
             email = username + '@example.com'
-        return self.app.post('/register', data={
+        resp = requests.post('http://localhost:5235/register', json = {
             'username':     username,
             'password':     password,
             'password2':    password2,
             'email':        email,
-        }, follow_redirects=True)
+        })
+        return resp
+
 
     def login(self, username, password):
         """Helper function to login"""
-        return self.app.post('/login', data={
+        return requests.post(self.url + "/login", json = {
             'username': username,
             'password': password
-        }, follow_redirects=True)
+        })
 
     def register_and_login(self, username, password):
         """Registers and logs in in one go"""
@@ -51,53 +57,62 @@ class MiniTwitTestCase(unittest.TestCase):
 
     def logout(self):
         """Helper function to logout"""
-        return self.app.get('/logout', follow_redirects=True)
+        return requests.get(self.url + "/logout")
 
     def add_message(self, text):
         """Records a message"""
-        rv = self.app.post('/add_message', data={'text': text},
-                                    follow_redirects=True)
+        rv = requests.post(self.url + "/add_message", json = {'text': text})
+        #rv = self.app.post('/add_message', data={'text': text},
+        #                            follow_redirects=True)
         if text:
-            assert 'Your message was recorded' in rv.data
+            self.assertEqual('Your message was recorded', rv.content.decode(self.decoding))
         return rv
+    
+    # get content from rv
+    def getContent(self,rv):
+        return rv.content.decode(self.decoding)
 
     # testing functions
+    def test_simple_register(self):
+        """homemade simple test failed"""
+        rv = self.register('user1', 'default')
+        self.assertEqual('You were successfully registered and can login now', self.getContent(rv))
 
     def test_register(self):
         """Make sure registering works"""
         rv = self.register('user1', 'default')
-        assert 'You were successfully registered ' \
-               'and can login now' in rv.data
+        self.assertEqual('You were successfully registered and can login now', rv.content.decode(self.decoding))
         rv = self.register('user1', 'default')
-        assert 'The username is already taken' in rv.data
+        self.assertEqual('The username is already taken', rv.content.decode(self.decoding))
         rv = self.register('', 'default')
-        assert 'You have to enter a username' in rv.data
+        self.assertEqual('You have to enter a username', rv.content.decode(self.decoding))
         rv = self.register('meh', '')
-        assert 'You have to enter a password' in rv.data
+        self.assertEqual('You have to enter a password' == (rv.content.decode(self.decoding)))
         rv = self.register('meh', 'x', 'y')
-        assert 'The two passwords do not match' in rv.data
+        self.assertEqual('The two passwords do not match' == rv.content.decode(self.decoding))
         rv = self.register('meh', 'foo', email='broken')
-        assert 'You have to enter a valid email address' in rv.data
+        self.assertEqual('You have to enter a valid email address' == (rv.content.decode(self.decoding)))
 
     def test_login_logout(self):
         """Make sure logging in and logging out works"""
         rv = self.register_and_login('user1', 'default')
-        assert 'You were logged in' in rv.data
+        self.assertEqual('You were logged in', self.getContent(rv))
         rv = self.logout()
-        assert 'You were logged out' in rv.data
+        self.assertEqual('You were logged out', self.getContent(rv))
         rv = self.login('user1', 'wrongpassword')
-        assert 'Invalid password' in rv.data
+        self.assertEqual('Invalid password', self.getContent(rv))
         rv = self.login('user2', 'wrongpassword')
-        assert 'Invalid username' in rv.data
+        self.assertEqual('Invalid username', self.getContent(rv))
 
     def test_message_recording(self):
         """Check if adding messages works"""
         self.register_and_login('foo', 'default')
         self.add_message('test message 1')
         self.add_message('<test message 2>')
-        rv = self.app.get('/')
-        assert 'test message 1' in rv.data
-        assert '&lt;test message 2&gt;' in rv.data
+        rv = self.getContent(requests.get(self.url + "/"))
+        # in can find substrings, maybe
+        self.assertTrue('test message 1' in rv)
+        self.assertTrue('&lt;test message 2&gt;' in rv)
 
     def test_timelines(self):
         """Make sure that timelines work"""
@@ -106,39 +121,39 @@ class MiniTwitTestCase(unittest.TestCase):
         self.logout()
         self.register_and_login('bar', 'default')
         self.add_message('the message by bar')
-        rv = self.app.get('/public')
-        assert 'the message by foo' in rv.data
-        assert 'the message by bar' in rv.data
+        res = requests.get('http://localhost:5235/public').content.decode("utf-8")
+        self.assertIn('the message by foo', res)
+        self.assertIn('the message by bar', res)
 
         # bar's timeline should just show bar's message
-        rv = self.app.get('/')
-        assert 'the message by foo' not in rv.data
-        assert 'the message by bar' in rv.data
+        res = self.getContent(requests.get('http://localhost:5235/'))
+        self.assertNotIn('the message by foo', res)
+        self.assertIn('the message by bar', res)
 
         # now let's follow foo
-        rv = self.app.get('/foo/follow', follow_redirects=True)
-        assert 'You are now following &#34;foo&#34;' in rv.data
+        res = self.getContent(requests.get('http://localhost:5235/foo/follow'))
+        #previous test , follow_redirects=True
+        self.assertIn('You are now following &#34;foo&#34;', res) 
 
         # we should now see foo's message
-        rv = self.app.get('/')
-        assert 'the message by foo' in rv.data
-        assert 'the message by bar' in rv.data
+        rv = self.getContent(requests.get(self.url + "/"))
+        self.assertIn('the message by foo', rv.data)
+        self.assertIn('the message by bar', rv.data)
 
         # but on the user's page we only want the user's message
-        rv = self.app.get('/bar')
-        assert 'the message by foo' not in rv.data
-        assert 'the message by bar' in rv.data
-        rv = self.app.get('/foo')
-        assert 'the message by foo' in rv.data
-        assert 'the message by bar' not in rv.data
+        res = requests.get('http://localhost:5235/bar').content.decode("utf-8")
+        self.assertNotIn('the message by foo', res)
+        self.assertIn('the message by bar', res) 
+        res = requests('http://localhost:5235/foo')
+        self.assertIn('the message by foo', res) 
+        self.assertNotIn('the message by bar', res) 
 
         # now unfollow and check if that worked
-        rv = self.app.get('/foo/unfollow', follow_redirects=True)
-        assert 'You are no longer following &#34;foo&#34;' in rv.data
-        rv = self.app.get('/')
-        assert 'the message by foo' not in rv.data
-        assert 'the message by bar' in rv.data
-
+        res = requests.get('http://localhost:5235/foo/unfollow').content.decode("utf-8")
+        self.assertIn('You are no longer following &#34;foo&#34;', res)
+        res = requests.get('http://localhost:5235/').content.decode("utf-8")
+        self.assertNotIn('the message by foo', res)
+        self.assertIn('the message by bar', res)
 
 if __name__ == '__main__':
     unittest.main()
