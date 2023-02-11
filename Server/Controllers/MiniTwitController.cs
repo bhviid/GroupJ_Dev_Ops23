@@ -34,7 +34,7 @@ public class MiniTwitController : ControllerBase
     }
 
     [HttpGet]
-    public IEnumerable<Message> GetAllMessages()
+    public IActionResult GetAllMessages()
     {
         var perPage = 30;
         var SQL = @$"select message.*, user.* from message, user
@@ -45,7 +45,7 @@ public class MiniTwitController : ControllerBase
         sqlCmd.CommandText = SQL;
         var s = sqlCmd.ExecuteReader();
         
-        var messages = new List<Message>();
+        var messages = new List<MsgDataPair>();
         while (s.Read())
         {
             var message = new Message()
@@ -54,11 +54,14 @@ public class MiniTwitController : ControllerBase
                 AuthorId = s.GetInt32(1),
                 Text = s.GetString(2),
                 PubDate =  new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(s.GetInt32(3)),
-                Flagged = s.GetInt32(4)
+                Flagged = s.GetInt32(4),
             };
-            messages.Add(message);
+            var author = new Author(
+                s.GetInt32(5), s.GetString(6), s.GetString(7)
+            );
+            messages.Add( new MsgDataPair(message,author) );
         }
-        return messages;
+        return Ok(messages);
     }
 
     [HttpGet]
@@ -68,7 +71,7 @@ public class MiniTwitController : ControllerBase
         //Must be here since MD5 is disabled in blazor wasm...
         using var md5 = System.Security.Cryptography.MD5.Create();
         byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
-        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed)}?d=identicon&s={size}";
+        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed).ToLower()}?d=identicon&s={size}";
     }
 
     [HttpPost]
