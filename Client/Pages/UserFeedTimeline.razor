@@ -1,7 +1,21 @@
-@page "/public"
+@page "/"
 @inject HttpClient http
+@inject NavigationManager navigation
 
 <h2>public timeline</h2>
+@if (User is not null)
+{    
+    <div class=twitbox>
+    <h3>What's on your mind @User.Username?</h3>
+    <form action="{{ url_for('add_message') }}" method=post>
+        <p>
+            <input type=text name=text size=60>
+                
+            <input type=submit value="Share">
+        </p>
+    </form>
+    </div>
+}
 <ul class=messages>
     @if (TwitData.Any())
     {
@@ -28,15 +42,27 @@
 
 @code 
 {
+    [CascadingParameter]
+    public User? User {get; set;}
+
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private Dictionary<string, string> gravatars = new Dictionary<string, string>();
     private int gravatarSize = 48;
 
     protected override async Task OnInitializedAsync()
     {
-        //public tweets - not logged in or user logged in on "/public"
-        var res = await http.GetFromJsonAsync<MsgDataPair[]>("/minitwit");   
-       
+        MsgDataPair[] res;
+        if(User is not null)
+        {
+            // Feed of active user when at "/"
+            res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}"); 
+        }
+        else 
+        {
+            navigation.NavigateTo("/public");
+            return; 
+        }
+        
         foreach(var m in res!)
         {
             var authormail = m.Item2.email;

@@ -7,23 +7,23 @@
 @if (User is not null)
 {
     <div class=followstatus>
-        @*am I on my own timeline?*@
         @if(User.Username == username)
         {
             <span>this is you!</span>
         }
-        <span></span>
-
-        @if(Followed)
-        {}
+        @if(Followed && !(User.Username == username))
+        {
             <span>You are currently following this user.</span>
-            <a class=unfollow href="url_for('unfollow_user', username=profile_user.username)">Unfollow user</a>.
+            <a class=unfollow href="/">
+                Unfollow user
+            </a>
         }
-        else 
+        @if(!Followed && !(User.Username == username))
         {
             <span>You are not yet following this user.</span>
-            <a class=follow href="{{ url_for('follow_user', username=profile_user.username)
-                }}">Follow user</a>.
+            <a class=follow href="/">
+                Follow user
+            </a>
         }
     </div>
 }
@@ -65,8 +65,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        MsgDataPair[] res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/{username}");   
-             
+        var httpRes = await http.GetAsync($"/minitwit/{username}");
+
+        if(!httpRes.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/public");
+            return;
+        }
+        var res = await httpRes.Content.ReadFromJsonAsync<MsgDataPair[]>();
+
+        //MsgDataPair[] res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/{username}");   
+  
+        
         foreach(var m in res!)
         {
             var authormail = m.Item2.email;

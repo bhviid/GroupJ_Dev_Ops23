@@ -16,7 +16,6 @@ public class MiniTwitController : ControllerBase
         try
         {
             sqliteConn.Open();
-            Console.WriteLine("Database connection established");
         }
         catch (System.Exception ex)
         {
@@ -39,6 +38,21 @@ public class MiniTwitController : ControllerBase
     {
         var SQL = @$"select message.*, user.* from message, user
         where message.flagged = 0 and message.author_id = user.user_id
+        order by message.pub_date desc limit {_perPage}";
+
+        return Ok(GetMsgPairData(SQL));
+    }
+
+    [HttpGet]
+    [Route("/minitwit/feed/{userId}")]
+    public IActionResult GetUserFeed(string userId)
+    {
+        //Does the userId exist?
+        string SQL = @$"select message.*, user.* from message, user
+        where message.flagged = 0 and message.author_id = user.user_id and (
+            user.user_id = {userId} or
+            user.user_id in (select whom_id from follower
+                                    where who_id = {userId}))
         order by message.pub_date desc limit {_perPage}";
 
         return Ok(GetMsgPairData(SQL));
