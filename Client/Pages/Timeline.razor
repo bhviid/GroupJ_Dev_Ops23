@@ -1,0 +1,96 @@
+@page "/public"
+@using System.Security.Cryptography;
+@inject HttpClient http
+
+
+<h2>public timeline</h2>
+@if (User is not null)
+{
+    if(endpoint == "user_timeline")
+    {
+        <div class=followstatus>
+            @*am I on my own timeline?*@
+            @if(User.UserId == ProfileUser.UserId)
+            {
+                <span>this is you!</span>
+            }
+            <span></span>
+            @if(Followed)
+            {}
+                <span>You are currently following this user.</span>
+                <a class=unfollow href="url_for('unfollow_user', username=profile_user.username)">Unfollow user</a>.
+            }
+            else 
+            {
+                <span>You are not yet following this user.</span>
+                <a class=follow href="{{ url_for('follow_user', username=profile_user.username)
+                    }}">Follow user</a>.
+            }
+        </div>    
+    }
+    else if (endpoint == "timeline")
+    {
+        <div class=twitbox>
+        <h3>What's on your mind {{ g.user.username }}?</h3>
+        <form action="{{ url_for('add_message') }}" method=post>
+            <p>
+                <input type=text name=text size=60>
+                    
+                <input type=submit value="Share">
+            </p>
+        </form>
+        </div>
+    }
+}
+<ul class=messages>
+    @if (Messages.Any())
+    {
+        @foreach (var msg in Messages)
+        {
+            <li>
+                @* Replace text@example.com with msg.email, msg.author.email*@
+                <img src=@gravatars[testEmail]>
+                <p>
+                    <strong><a href="{{ url_for('user_timeline', username=message.username)}}">@msg.AuthorId</a></strong>
+                    @msg.Text
+                    <small>&mdash; @msg.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
+                </p>
+            </li>
+        }
+    }
+    else 
+    {
+        <li><em>There's no message so far.</em></li>
+    }
+</ul>
+
+@code 
+{
+    [CascadingParameter]
+    public User? User {get; set;}
+
+    public bool Followed { get; set; }
+
+    public User ProfileUser { get; set; }
+
+    public string endpoint {get; set;} = "timeline";
+
+    public List<Message> Messages { get; set; } = new List<Message>();
+    private Dictionary<string, string> gravatars;
+    private int gravatarSize = 48;
+
+    private string testEmail = "test@example.com";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var res = await http.GetFromJsonAsync<Message[]>("/minitwit");
+        
+        gravatars = new Dictionary<string, string>();
+        foreach(var m in res)
+        {
+            // TODO: Somehow get the email of message author.
+            gravatars[testEmail] = await http.GetStringAsync($"/minitwit/md5/{testEmail}/{gravatarSize}");
+        }
+        Messages = res!.ToList();
+    }
+}
