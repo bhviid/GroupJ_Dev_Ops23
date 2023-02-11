@@ -26,6 +26,7 @@ public class MiniTwitController : ControllerBase
     }
     
     private readonly ILogger<MiniTwitController> _logger;
+    private readonly int _perPage = 30;
 
     public MiniTwitController(ILogger<MiniTwitController> logger)
     {
@@ -36,15 +37,48 @@ public class MiniTwitController : ControllerBase
     [HttpGet]
     public IActionResult GetAllMessages()
     {
-        var perPage = 30;
         var SQL = @$"select message.*, user.* from message, user
         where message.flagged = 0 and message.author_id = user.user_id
-        order by message.pub_date desc limit {perPage}";
+        order by message.pub_date desc limit {_perPage}";
 
+        return Ok(GetMsgPairData(SQL));
+    }
+
+    [HttpGet]
+    [Route("/minitwit/{username}")]
+    public IActionResult GetUserTimeline(string username)
+    {
+        string profile_userSQL = $"""select * from user where username = "{username}" """;
+        Console.WriteLine(profile_userSQL);
         var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
+        sqlCmd.CommandText = profile_userSQL;
         var s = sqlCmd.ExecuteReader();
+        User profileUser;
+    
+        if(s.Read())
+        {
+            profileUser = new User 
+            {
+                UserId = s.GetInt32(0),
+                Username = s.GetString(1),
+                Email = s.GetString(2),
+            };
+        }
+        else return NotFound();
+
+        string SQL = @$"select message.*, user.* from message, user where
+            user.user_id = message.author_id and user.user_id = {profileUser.UserId}
+            order by message.pub_date desc limit {_perPage}";
         
+        return Ok(GetMsgPairData(SQL));
+    }
+
+    private List<MsgDataPair> GetMsgPairData(string SQLCMD)
+    {
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQLCMD;
+        var s = sqlCmd.ExecuteReader();
+
         var messages = new List<MsgDataPair>();
         while (s.Read())
         {
@@ -61,7 +95,7 @@ public class MiniTwitController : ControllerBase
             );
             messages.Add( new MsgDataPair(message,author) );
         }
-        return Ok(messages);
+        return messages;
     }
 
     [HttpGet]

@@ -1,20 +1,30 @@
-@page "/"
-@page "/public"
+@page "/{username}"
 @inject HttpClient http
 @inject NavigationManager navigation
 
-<h2>public timeline</h2>
+<h2>@username timeline</h2>
+
 @if (User is not null)
-{    
-    <div class=twitbox>
-    <h3>What's on your mind {{ g.user.username }}?</h3>
-    <form action="{{ url_for('add_message') }}" method=post>
-        <p>
-            <input type=text name=text size=60>
-                
-            <input type=submit value="Share">
-        </p>
-    </form>
+{
+    <div class=followstatus>
+        @*am I on my own timeline?*@
+        @if(User.Username == username)
+        {
+            <span>this is you!</span>
+        }
+        <span></span>
+
+        @if(Followed)
+        {}
+            <span>You are currently following this user.</span>
+            <a class=unfollow href="url_for('unfollow_user', username=profile_user.username)">Unfollow user</a>.
+        }
+        else 
+        {
+            <span>You are not yet following this user.</span>
+            <a class=follow href="{{ url_for('follow_user', username=profile_user.username)
+                }}">Follow user</a>.
+        }
     </div>
 }
 <ul class=messages>
@@ -23,12 +33,9 @@
         @foreach (var msgAuthor in TwitData)
         {
             <li>
-                @* Replace text@example.com with msg.email, msg.author.email*@
                 <img src=@gravatars[msgAuthor.Item2.email]>
                 <p>
-                    <strong>
-                        <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
-                    </strong>
+                    <strong><a  href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a></strong>
                     @msgAuthor.Item1.Text
                     <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
                 </p>
@@ -48,24 +55,18 @@
 
     public bool Followed { get; set; }
 
+    [Parameter]
+    public string? username { get; set; }
+    public User ProfileUser { get; set; }
+
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private Dictionary<string, string> gravatars = new Dictionary<string, string>();
     private int gravatarSize = 48;
 
     protected override async Task OnInitializedAsync()
     {
-        MsgDataPair[] res;
-        if(User is not null)
-        {
-            // Feed of active user when at "/"
-            res = new MsgDataPair[]{};
-        }
-        else 
-        {
-            //public tweets - not logged in or user logged in on "/public"
-            res = await http.GetFromJsonAsync<MsgDataPair[]>("/minitwit");   
-        }
-        
+        MsgDataPair[] res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/{username}");   
+             
         foreach(var m in res!)
         {
             var authormail = m.Item2.email;
