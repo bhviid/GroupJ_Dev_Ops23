@@ -1,0 +1,87 @@
+@page "/{username}"
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<h2>@username timeline</h2>
+
+@if (User is not null)
+{
+    <div class=followstatus>
+        @if(User.Username == username)
+        {
+            <span>this is you!</span>
+        }
+        @if(Followed && !(User.Username == username))
+        {
+            <span>You are currently following this user.</span>
+            <a class=unfollow href="/">
+                Unfollow user
+            </a>
+        }
+        @if(!Followed && !(User.Username == username))
+        {
+            <span>You are not yet following this user.</span>
+            <a class=follow href="/">
+                Follow user
+            </a>
+        }
+    </div>
+}
+<ul class=messages>
+    @if (TwitData.Any())
+    {
+        @foreach (var msgAuthor in TwitData)
+        {
+            <li>
+                <img src=@gravatars[msgAuthor.Item2.email]>
+                <p>
+                    <strong><a  href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a></strong>
+                    @msgAuthor.Item1.Text
+                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
+                </p>
+            </li>
+        }
+    }
+    else 
+    {
+        <li><em>There's no message so far.</em></li>
+    }
+</ul>
+
+@code 
+{
+    [CascadingParameter]
+    public User? User {get; set;}
+
+    public bool Followed { get; set; }
+
+    [Parameter]
+    public string? username { get; set; }
+    public User ProfileUser { get; set; }
+
+    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
+    private Dictionary<string, string> gravatars = new Dictionary<string, string>();
+    private int gravatarSize = 48;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpRes = await http.GetAsync($"/minitwit/{username}");
+
+        if(!httpRes.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/public");
+            return;
+        }
+        var res = await httpRes.Content.ReadFromJsonAsync<MsgDataPair[]>();
+
+        //MsgDataPair[] res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/{username}");   
+  
+        
+        foreach(var m in res!)
+        {
+            var authormail = m.Item2.email;
+            gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
+        }
+        TwitData = res!.ToList();
+    }
+}

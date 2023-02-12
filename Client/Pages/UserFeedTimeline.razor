@@ -1,0 +1,73 @@
+@page "/"
+@inject HttpClient http
+@inject NavigationManager navigation
+
+<h2>public timeline</h2>
+@if (User is not null)
+{    
+    <div class=twitbox>
+    <h3>What's on your mind @User.Username?</h3>
+    <form action="{{ url_for('add_message') }}" method=post>
+        <p>
+            <input type=text name=text size=60>
+                
+            <input type=submit value="Share">
+        </p>
+    </form>
+    </div>
+}
+<ul class=messages>
+    @if (TwitData.Any())
+    {
+        @foreach (var msgAuthor in TwitData)
+        {
+            <li>
+                @* Replace text@example.com with msg.email, msg.author.email*@
+                <img src=@gravatars[msgAuthor.Item2.email]>
+                <p>
+                    <strong>
+                        <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
+                    </strong>
+                    @msgAuthor.Item1.Text
+                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
+                </p>
+            </li>
+        }
+    }
+    else 
+    {
+        <li><em>There's no message so far.</em></li>
+    }
+</ul>
+
+@code 
+{
+    [CascadingParameter]
+    public User? User {get; set;}
+
+    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
+    private Dictionary<string, string> gravatars = new Dictionary<string, string>();
+    private int gravatarSize = 48;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MsgDataPair[] res;
+        if(User is not null)
+        {
+            // Feed of active user when at "/"
+            res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}"); 
+        }
+        else 
+        {
+            navigation.NavigateTo("/public");
+            return; 
+        }
+        
+        foreach(var m in res!)
+        {
+            var authormail = m.Item2.email;
+            gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
+        }
+        TwitData = res!.ToList();
+    }
+}
