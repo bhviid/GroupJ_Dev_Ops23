@@ -1,0 +1,57 @@
+@page "/register"
+@inject HttpClient http
+@inject NavigationManager navigation
+@using Newtonsoft.Json
+<PageTitle>Sign Up</PageTitle>
+
+<h2>Sign Up</h2>
+
+<Microsoft.AspNetCore.Components.Web.ErrorBoundary>
+
+</Microsoft.AspNetCore.Components.Web.ErrorBoundary>
+
+Username:<br>
+
+&emsp;&emsp;&emsp;<input type="text" @bind="@Username"> <br>
+
+E-Mail:<br>
+
+&emsp;&emsp;&emsp;<input type="text" @bind="@Email"> <br>
+
+Password:<br>
+
+&emsp;&emsp;&emsp;<input type="text" @bind="@Password"> <br>
+
+Password (repeat):<br>
+
+&emsp;&emsp;&emsp;<input type="text" @bind="@PasswordRepeat"> <br>
+
+<button @onclick="SignUp">Sign Up</button>
+
+@code {
+    private string Username;
+    private string Email;
+    private string Password;
+    private string PasswordRepeat;
+
+    private async void SignUp()
+    {
+        if (Password != PasswordRepeat)
+        {
+            throw new ArgumentException("Passwords do not match");
+        }
+        var json = JsonConvert.SerializeObject(new {username = Username, email = Email, password = Password});
+        var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
+        var resp = await http.PostAsync("minitwit/register", content);
+        if (resp.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/");
+        }
+        else
+        {
+            Console.WriteLine(resp.Content);
+            throw new HttpRequestException("Something went wrong. Please try again");
+        }
+    }
+
+}
