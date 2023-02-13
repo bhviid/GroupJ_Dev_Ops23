@@ -9,7 +9,7 @@ namespace MiniTwit.Server.Controllers;
 public class MiniTwitController : ControllerBase, IDisposable
 {
     SQLiteConnection _sqliteConn;
-    private bool disposedValue;
+    private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
     static SQLiteConnection CreateConnection()
     {
@@ -145,7 +145,23 @@ public class MiniTwitController : ControllerBase, IDisposable
         return Ok($"You are no longer following {username}");
     }
 
+    [HttpPost]
+    [Route("add-message")]
+    [Consumes("application/json")]
+    public IActionResult AddMessage(Message message)
+    {
+        _sqliteConn.Open();
 
+        var currTimeInSecSince1970 = DateTime.Now - Jan1970;
+
+        var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        sqlCmd.ExecuteNonQuery();
+
+        _sqliteConn.Close();
+        return Ok($"Message posted: {message.Text}");
+    }
     private int? GetUserId(string username)
     {
         _sqliteConn.Open();

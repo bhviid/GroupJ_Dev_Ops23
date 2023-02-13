@@ -88,7 +88,7 @@ Left to do:
     * We had issue with the database being "locked", returning a errorcode 5.
 
 
-
+We are trying to fix to our forms, by inserting a model (message submit model client/shared) to make add message work
 
 
  
