@@ -16,14 +16,14 @@
             if(Followed)
             {
                 <span>You are currently following this user.</span>
-                <a class=unfollow href="/">
+                <a class=unfollow @onclick="HandleUnFollow">
                     Unfollow user
                 </a>
             }
             else 
             {
                 <span>You are not yet following this user.</span>
-                <a class=follow href="/">
+                <a class=follow @onclick="HandleFollow">
                     Follow user
                 </a>
             }
@@ -70,5 +70,34 @@
             gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
         }
         TwitData = res!.ToList();
+    }
+
+    private async Task HandleFollow()
+    {
+        var resp = await http.PostAsJsonAsync<User>($"/minitwit/{username}/follow", User);
+        if(resp.IsSuccessStatusCode)
+        {
+            //Tell the user that they are indeed following the user...
+            Followed = true;
+        }
+        else
+        {
+            //Alert user that something went wrong?
+        }
+    }
+
+    private async Task HandleUnFollow()
+    {
+        var resp = await http.PostAsJsonAsync<User>($"/minitwit/{username}/unfollow", User);
+
+        if(resp.IsSuccessStatusCode)
+        {
+            //Tell the user that they are indeed following the user...
+            Followed = false;
+        }
+        else
+        {
+            //Alert user that something went wrong?
+        }
     }
 }
