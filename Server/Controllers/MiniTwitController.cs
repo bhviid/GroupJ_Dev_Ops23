@@ -123,7 +123,7 @@ public class MiniTwitController : ControllerBase
     }
 
     [HttpPost]
-    [Route(("/register"))]
+    [Route(("register"))]
     [Consumes("application/json")]
     public string Register()
     {

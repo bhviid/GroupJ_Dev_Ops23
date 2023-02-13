@@ -20,11 +20,11 @@ E-Mail:<br>
 
 Password:<br>
 
-&emsp;&emsp;&emsp;<input type="text" @bind="@Password"> <br>
+&emsp;&emsp;&emsp;<input type="password" @bind="@Password"> <br>
 
 Password (repeat):<br>
 
-&emsp;&emsp;&emsp;<input type="text" @bind="@PasswordRepeat"> <br>
+&emsp;&emsp;&emsp;<input type="password" @bind="@PasswordRepeat"> <br>
 
 <button @onclick="SignUp">Sign Up</button>
 
@@ -53,5 +53,4 @@ Password (repeat):<br>
             throw new HttpRequestException("Something went wrong. Please try again");
         }
     }
-
 }
