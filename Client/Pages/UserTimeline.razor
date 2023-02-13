@@ -11,42 +11,26 @@
         {
             <span>this is you!</span>
         }
-        @if(Followed && !(User.Username == username))
+        else 
         {
-            <span>You are currently following this user.</span>
-            <a class=unfollow href="/">
-                Unfollow user
-            </a>
-        }
-        @if(!Followed && !(User.Username == username))
-        {
-            <span>You are not yet following this user.</span>
-            <a class=follow href="/">
-                Follow user
-            </a>
+            if(Followed)
+            {
+                <span>You are currently following this user.</span>
+                <a class=unfollow href="/">
+                    Unfollow user
+                </a>
+            }
+            else 
+            {
+                <span>You are not yet following this user.</span>
+                <a class=follow href="/">
+                    Follow user
+                </a>
+            }
         }
     </div>
 }
-<ul class=messages>
-    @if (TwitData.Any())
-    {
-        @foreach (var msgAuthor in TwitData)
-        {
-            <li>
-                <img src=@gravatars[msgAuthor.Item2.email]>
-                <p>
-                    <strong><a  href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a></strong>
-                    @msgAuthor.Item1.Text
-                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
-                </p>
-            </li>
-        }
-    }
-    else 
-    {
-        <li><em>There's no message so far.</em></li>
-    }
-</ul>
+<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
 
 @code 
 {
