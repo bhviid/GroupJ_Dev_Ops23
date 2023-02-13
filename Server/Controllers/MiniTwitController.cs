@@ -58,6 +58,19 @@ public class MiniTwitController : ControllerBase
         return Ok(GetMsgPairData(SQL));
     }
 
+    [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
+    public IActionResult IsFollower(string whoUsername, string whomUsername)
+    {
+        int whoId = GetUserId(whoUsername);
+        int whomId = GetUserId(whomUsername);
+
+        string SQL = @$"select 1 from follower where
+            follower.who_id = {whoId} and follower.whom_id = {whomId}";
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        return sqlCmd.ExecuteScalar() is not null ? Ok(true) : Ok(false);
+    }
+
     [HttpGet]
     [Route("/minitwit/{username}")]
     public IActionResult GetUserTimeline(string username)
@@ -85,6 +98,15 @@ public class MiniTwitController : ControllerBase
             order by message.pub_date desc limit {_perPage}";
         
         return Ok(GetMsgPairData(SQL));
+    }
+
+    private int GetUserId(string username)
+    {
+        string SQL = $"""select user_id from user where username = "{username}" """;
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        var s = sqlCmd.ExecuteScalar();
+        return Int32.Parse(s.ToString());
     }
 
     private List<MsgDataPair> GetMsgPairData(string SQLCMD)
