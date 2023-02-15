@@ -6,41 +6,42 @@
 
 <h2>Sign Up</h2>
 
-<Microsoft.AspNetCore.Components.Web.ErrorBoundary>
+<EditForm Model="@registerModel" OnSubmit="@SignUp">
+    Username:<br>
 
-</Microsoft.AspNetCore.Components.Web.ErrorBoundary>
+    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Username"/> <br>
 
-Username:<br>
+    E-Mail:<br>
 
-&emsp;&emsp;&emsp;<input type="text" @bind="@Username"> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Email"/> <br>
 
-E-Mail:<br>
+    Password:<br>
 
-&emsp;&emsp;&emsp;<input type="text" @bind="@Email"> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Password"/> <br>
 
-Password:<br>
+    Password (repeat):<br>
 
-&emsp;&emsp;&emsp;<input type="password" @bind="@Password"> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.PasswordRepeat"/> <br>
 
-Password (repeat):<br>
-
-&emsp;&emsp;&emsp;<input type="password" @bind="@PasswordRepeat"> <br>
-
-<button @onclick="SignUp">Sign Up</button>
+    <button type="submit">Sign Up</button>
+</EditForm> 
 
 @code {
-    private string Username;
-    private string Email;
-    private string Password;
-    private string PasswordRepeat;
+    private RegisterModel registerModel = new();
 
     private async void SignUp()
     {
-        if (Password != PasswordRepeat)
+        if (registerModel.Password != registerModel.PasswordRepeat)
         {
             throw new ArgumentException("Passwords do not match");
         }
-        var json = JsonConvert.SerializeObject(new {username = Username, email = Email, password = Password});
+        if (!registerModel.Email.Contains("@"))
+        {
+            throw new ArgumentException("Email must contain an @");
+        }
+
+        var json = JsonConvert.SerializeObject(new UserDTO { Username = registerModel.Username, Email = registerModel.Email, Password = registerModel.Password });
+        Console.WriteLine(json);
         var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
         var resp = await http.PostAsync("minitwit/register", content);
         if (resp.IsSuccessStatusCode)

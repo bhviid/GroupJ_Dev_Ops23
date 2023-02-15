@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
 using MiniTwit.Shared;
+using Newtonsoft.Json.Linq;
 
 namespace MiniTwit.Server.Controllers;
 
@@ -125,9 +126,49 @@ public class MiniTwitController : ControllerBase
     [HttpPost]
     [Route(("register"))]
     [Consumes("application/json")]
-    public string Register()
+    public async Task<IActionResult> Register(UserDTO user)
     {
+        if (await UserExists(user))
+        {
+            return Conflict("User already exists");
+        }
 
-        return "You were successfully registered and can login now";
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(user.Password));
+        var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
+
+        var sqlcmd = _sqliteConn.CreateCommand();
+        sqlcmd.CommandText = $@"INSERT INTO user
+        (username, email, pw_hash) VALUES
+        ('{user.Username}', '{user.Email}', '{PwHash}');";
+        var res = await sqlcmd.ExecuteNonQueryAsync();
+        
+        var createdUserCmd = _sqliteConn.CreateCommand();
+        createdUserCmd.CommandText = @$"SELECT * FROM user WHERE
+        email LIKE '{user.Email}' AND username LIKE '{user.Username}'";
+        
+        var userReader = await createdUserCmd.ExecuteReaderAsync();
+        await userReader.ReadAsync();
+        User createdUser = new();
+        createdUser.UserId = (int)(long)userReader["user_id"];
+        createdUser.Email = (string)userReader["email"];
+        createdUser.Username = (string)userReader["username"];
+        createdUser.Password = (string)userReader["pw_hash"];
+        if (res == 1)
+        {
+            return Created($"user/{createdUser.UserId}", createdUser);
+        }
+        return BadRequest("Nothing was changed");
+    }
+
+    private async Task<bool> UserExists(UserDTO user)
+    {
+        var existsCommand = _sqliteConn.CreateCommand();
+        existsCommand.CommandText = @$"SELECT COUNT(user_id)
+        FROM user WHERE
+        username LIKE '{user.Username}'";
+        var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
+        Console.WriteLine(res);
+        return res > 0;
     }
 }

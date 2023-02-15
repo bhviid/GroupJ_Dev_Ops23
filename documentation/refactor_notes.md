@@ -73,5 +73,7 @@ We used the --hosted flag. “api” and front are current on the same port.
 So, API routes have to be different from frontend ones.
 EFCore Refactor
 
-
+### 13/02/2023
+Having trouble with the API and making requests fit the expected format.
+Inserting with SQLite is a pain.
  
