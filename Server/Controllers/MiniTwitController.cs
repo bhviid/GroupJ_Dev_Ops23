@@ -216,8 +216,10 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> Register(UserDTO user)
     {
+        await _sqliteConn.OpenAsync();
         if (await UserExists(user))
         {
+            await _sqliteConn.CloseAsync();
             return Conflict("User already exists");
         }
 
@@ -237,11 +239,11 @@ public class MiniTwitController : ControllerBase, IDisposable
         
         var userReader = await createdUserCmd.ExecuteReaderAsync();
         await userReader.ReadAsync();
-        User createdUser = new();
-        createdUser.UserId = (int)(long)userReader["user_id"];
-        createdUser.Email = (string)userReader["email"];
-        createdUser.Username = (string)userReader["username"];
-        createdUser.Password = (string)userReader["pw_hash"];
+        User createdUser = new User{UserId = (int)(long)userReader["user_id"], 
+        Email = (string)userReader["email"],
+        Username = (string)userReader["username"],
+        Password = (string)userReader["pw_hash"]};
+        await _sqliteConn.CloseAsync();
         if (res == 1)
         {
             return Created($"user/{createdUser.UserId}", createdUser);
@@ -256,7 +258,6 @@ public class MiniTwitController : ControllerBase, IDisposable
         FROM user WHERE
         username LIKE '{user.Username}'";
         var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
-        Console.WriteLine(res);
         return res > 0;
     }
 
