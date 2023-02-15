@@ -7,9 +7,10 @@ namespace MiniTwit.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class MiniTwitController : ControllerBase
+public class MiniTwitController : ControllerBase, IDisposable
 {
     SQLiteConnection _sqliteConn;
+    private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
     static SQLiteConnection CreateConnection()
     {
@@ -28,10 +29,11 @@ public class MiniTwitController : ControllerBase
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
 
-    public MiniTwitController(ILogger<MiniTwitController> logger)
+    public MiniTwitController(ILogger<MiniTwitController> logger, SQLiteConnection conn)
     {
         _logger = logger;
-        _sqliteConn = CreateConnection();
+        //_sqliteConn = CreateConnection();
+        _sqliteConn = conn;
     }
 
     [HttpGet]
@@ -59,10 +61,27 @@ public class MiniTwitController : ControllerBase
         return Ok(GetMsgPairData(SQL));
     }
 
+    [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
+    public IActionResult IsFollower(string whoUsername, string whomUsername)
+    {
+        int? whoId = GetUserId(whoUsername);
+        int? whomId = GetUserId(whomUsername);
+
+        _sqliteConn.Open();
+        string SQL = @$"select 1 from follower where
+            follower.who_id = {whoId} and follower.whom_id = {whomId}";
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        var result = sqlCmd.ExecuteScalar();
+        _sqliteConn.Close();
+        return result is not null ? Ok(true) : Ok(false);
+    }
+
     [HttpGet]
     [Route("/minitwit/{username}")]
     public IActionResult GetUserTimeline(string username)
     {
+        _sqliteConn.Open();
         string profile_userSQL = $"""select * from user where username = "{username}" """;
         Console.WriteLine(profile_userSQL);
         var sqlCmd = _sqliteConn.CreateCommand();
@@ -80,6 +99,7 @@ public class MiniTwitController : ControllerBase
             };
         }
         else return NotFound();
+        _sqliteConn.Close();
 
         string SQL = @$"select message.*, user.* from message, user where
             user.user_id = message.author_id and user.user_id = {profileUser.UserId}
@@ -88,8 +108,75 @@ public class MiniTwitController : ControllerBase
         return Ok(GetMsgPairData(SQL));
     }
 
+    [HttpPost]
+    [Route("{username}/follow")]
+    [Consumes("application/json")]
+    public IActionResult Follow(string username, User activeUser)
+    {
+        Console.WriteLine("yo");
+        var whomId = GetUserId(username);
+        if(whomId is null) return NotFound();
+
+        _sqliteConn.Open();
+        var SQL = @$"insert into follower (who_id, whom_id) values ({activeUser.UserId}, {whomId})";
+        Console.WriteLine(SQL);
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        sqlCmd.ExecuteNonQuery();
+        _sqliteConn.Close();
+        return Ok($"You are now following {username}");
+    }
+
+    [HttpPost]
+    [Route("{username}/unfollow")]
+    [Consumes("application/json")]
+    public IActionResult UnFollow(string username, User activeUser)
+    {
+        Console.WriteLine("yo");
+        var whomId = GetUserId(username);
+        if(whomId is null) return NotFound();
+
+        _sqliteConn.Open();
+        var SQL = @$"delete from follower where who_id={activeUser.UserId} and whom_id={whomId}";
+        Console.WriteLine(SQL);
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        sqlCmd.ExecuteNonQuery();
+        _sqliteConn.Close();
+        return Ok($"You are no longer following {username}");
+    }
+
+    [HttpPost]
+    [Route("add-message")]
+    [Consumes("application/json")]
+    public IActionResult AddMessage(Message message)
+    {
+        _sqliteConn.Open();
+
+        var currTimeInSecSince1970 = DateTime.Now - Jan1970;
+
+        var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        sqlCmd.ExecuteNonQuery();
+
+        _sqliteConn.Close();
+        return Ok($"Message posted: {message.Text}");
+    }
+    private int? GetUserId(string username)
+    {
+        _sqliteConn.Open();
+        string SQL = $"""select user_id from user where username = "{username}" """;
+        var sqlCmd = _sqliteConn.CreateCommand();
+        sqlCmd.CommandText = SQL;
+        var s = sqlCmd.ExecuteScalar();
+        _sqliteConn.Close();
+        return s is not null ? Int32.Parse(s.ToString()) : null;
+    }
+
     private List<MsgDataPair> GetMsgPairData(string SQLCMD)
     {
+        _sqliteConn.Open();
         var sqlCmd = _sqliteConn.CreateCommand();
         sqlCmd.CommandText = SQLCMD;
         var s = sqlCmd.ExecuteReader();
@@ -110,6 +197,7 @@ public class MiniTwitController : ControllerBase
             );
             messages.Add( new MsgDataPair(message,author) );
         }
+        _sqliteConn.Close();
         return messages;
     }
 
@@ -170,5 +258,11 @@ public class MiniTwitController : ControllerBase
         var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
         Console.WriteLine(res);
         return res > 0;
+    }
+
+    public void Dispose()
+    {
+        //_sqliteConn.Close();
+        Console.WriteLine("connection was closed");
     }
 }

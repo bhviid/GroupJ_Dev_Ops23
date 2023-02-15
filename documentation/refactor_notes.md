@@ -65,13 +65,30 @@ Furthermore, our api is currently establishing a new connection to the database 
 We have had trouble with Blazor routing. We have split the timeline page into three separate razor pages. 
 
 Left to do:
-Follow/unfollow users.
-Add messages/create twits(write to database, fix message form).
-Make sure Tests work
-Split the frontend and backend port??
-We used the --hosted flag. “api” and front are current on the same port.
-So, API routes have to be different from frontend ones.
-EFCore Refactor
+* Follow/unfollow users.
+* Add messages/create twits(write to database, fix message form).
+* Make sure Tests work
+* Split the frontend and backend port??
+    * We used the --hosted flag. “api” and front are current on the same port.
+    * So, API routes have to be different from frontend ones.
+* EFCore Refactor
+
+
+
+
+
+## Log 13-2-23
+* Created the follow/unfollow box depending on the user logged in.
+* Created a post method for following a user.
+    * it returns an Ok - 200 instead of the expected 201 from a post request.
+* Created a post method for unfolllowing a user (BAD)
+    * It should not be a post but a delete instead, and we should look at the return codes aswell.
+
+* Inserted Journal: Wal into our sql connection in program.cs in /Server. to fix sqlite lock issues.    
+    * We had issue with the database being "locked", returning a errorcode 5.
+
+
+We are trying to fix to our forms, by inserting a model (message submit model client/shared) to make add message work
 
 ### 13/02/2023
 Having trouble with the API and making requests fit the expected format.

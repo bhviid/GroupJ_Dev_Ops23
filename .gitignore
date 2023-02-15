@@ -404,3 +404,7 @@ _ReSharper.*
 **/bin/*
 **/obj/*
 packages
+
+#db files?
+tmp/
+*.db
