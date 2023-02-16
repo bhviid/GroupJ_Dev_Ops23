@@ -93,4 +93,11 @@ We are trying to fix to our forms, by inserting a model (message submit model cl
 ### 13/02/2023
 Having trouble with the API and making requests fit the expected format.
 Inserting with SQLite is a pain.
+
+### 16/02/2023
+Implementing the first iteration of our sim_api.
+* currently it is just a copy of the python version except it is C# code. Possibly not the fastest cleanest or mode C#-ish style.
+* the Python objects work different from C# objects, so for the fllws Post method, we have had to introduce a record that have to nullable members, if one (follow or unfollow) is null, we know that the request is targeting the other action (follow or unfollow). 
+* Also, understanding the python fllws endpoint was quite confusing at first, but if you imagine that the {username} is who is acting, it kind of makes sense.
+
  
