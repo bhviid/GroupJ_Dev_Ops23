@@ -65,13 +65,39 @@ Furthermore, our api is currently establishing a new connection to the database 
 We have had trouble with Blazor routing. We have split the timeline page into three separate razor pages. 
 
 Left to do:
-Follow/unfollow users.
-Add messages/create twits(write to database, fix message form).
-Make sure Tests work
-Split the frontend and backend port??
-We used the --hosted flag. “api” and front are current on the same port.
-So, API routes have to be different from frontend ones.
-EFCore Refactor
+* Follow/unfollow users.
+* Add messages/create twits(write to database, fix message form).
+* Make sure Tests work
+* Split the frontend and backend port??
+    * We used the --hosted flag. “api” and front are current on the same port.
+    * So, API routes have to be different from frontend ones.
+* EFCore Refactor
 
+
+
+
+
+## Log 13-2-23
+* Created the follow/unfollow box depending on the user logged in.
+* Created a post method for following a user.
+    * it returns an Ok - 200 instead of the expected 201 from a post request.
+* Created a post method for unfolllowing a user (BAD)
+    * It should not be a post but a delete instead, and we should look at the return codes aswell.
+
+* Inserted Journal: Wal into our sql connection in program.cs in /Server. to fix sqlite lock issues.    
+    * We had issue with the database being "locked", returning a errorcode 5.
+
+
+We are trying to fix to our forms, by inserting a model (message submit model client/shared) to make add message work
+
+### 13/02/2023
+Having trouble with the API and making requests fit the expected format.
+Inserting with SQLite is a pain.
+
+### 16/02/2023
+Implementing the first iteration of our sim_api.
+* currently it is just a copy of the python version except it is C# code. Possibly not the fastest cleanest or mode C#-ish style.
+* the Python objects work different from C# objects, so for the fllws Post method, we have had to introduce a record that have to nullable members, if one (follow or unfollow) is null, we know that the request is targeting the other action (follow or unfollow). 
+* Also, understanding the python fllws endpoint was quite confusing at first, but if you imagine that the {username} is who is acting, it kind of makes sense.
 
  

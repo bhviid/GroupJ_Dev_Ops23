@@ -7,38 +7,17 @@
 {    
     <div class=twitbox>
     <h3>What's on your mind @User.Username?</h3>
-    <form action="{{ url_for('add_message') }}" method=post>
+    <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
         <p>
-            <input type=text name=text size=60>
+            <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
                 
             <input type=submit value="Share">
         </p>
-    </form>
+    </EditForm>
     </div>
 }
-<ul class=messages>
-    @if (TwitData.Any())
-    {
-        @foreach (var msgAuthor in TwitData)
-        {
-            <li>
-                @* Replace text@example.com with msg.email, msg.author.email*@
-                <img src=@gravatars[msgAuthor.Item2.email]>
-                <p>
-                    <strong>
-                        <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
-                    </strong>
-                    @msgAuthor.Item1.Text
-                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
-                </p>
-            </li>
-        }
-    }
-    else 
-    {
-        <li><em>There's no message so far.</em></li>
-    }
-</ul>
+
+<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
 
 @code 
 {
@@ -49,20 +28,37 @@
     private Dictionary<string, string> gravatars = new Dictionary<string, string>();
     private int gravatarSize = 48;
 
+    private MessageSubmitModel thisModel = new();
+    private async void HandleSubmit()
+    {
+        Message toPost = new Message{AuthorId = User.UserId, Text = thisModel.WhatsOnYourMindString,
+                        PubDate = DateTime.Now, Flagged = 0};
+
+        var resp = await http.PostAsJsonAsync<Message>($"/minitwit/add-message",toPost);
+        
+        if(resp.IsSuccessStatusCode)
+        {
+            await GetTwitData();
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
-        MsgDataPair[] res;
         if(User is not null)
         {
-            // Feed of active user when at "/"
-            res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}"); 
+            await GetTwitData();
         }
         else 
         {
             navigation.NavigateTo("/public");
             return; 
         }
-        
+    }
+
+    private async Task GetTwitData()
+    {
+        MsgDataPair[] res =
+        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}") ?? Array.Empty<MsgDataPair>(); 
+
         foreach(var m in res!)
         {
             var authormail = m.Item2.email;

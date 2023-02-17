@@ -2,29 +2,7 @@
 @inject HttpClient http
 
 <h2>public timeline</h2>
-<ul class=messages>
-    @if (TwitData.Any())
-    {
-        @foreach (var msgAuthor in TwitData)
-        {
-            <li>
-                @* Replace text@example.com with msg.email, msg.author.email*@
-                <img src=@gravatars[msgAuthor.Item2.email]>
-                <p>
-                    <strong>
-                        <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
-                    </strong>
-                    @msgAuthor.Item1.Text
-                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
-                </p>
-            </li>
-        }
-    }
-    else 
-    {
-        <li><em>There's no message so far.</em></li>
-    }
-</ul>
+<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
 
 @code 
 {

@@ -1,0 +1,57 @@
+@page "/register"
+@inject HttpClient http
+@inject NavigationManager navigation
+@using Newtonsoft.Json
+<PageTitle>Sign Up</PageTitle>
+
+<h2>Sign Up</h2>
+
+<EditForm Model="@registerModel" OnSubmit="@SignUp">
+    Username:<br>
+
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Username"/> <br>
+
+    E-Mail:<br>
+
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Email"/> <br>
+
+    Password:<br>
+
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Password"/> <br>
+
+    Password (repeat):<br>
+
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.PasswordRepeat"/> <br>
+
+    <button type="submit">Sign Up</button>
+</EditForm> 
+
+@code {
+    private RegisterModel registerModel = new();
+
+    private async void SignUp()
+    {
+        if (registerModel.Password != registerModel.PasswordRepeat)
+        {
+            throw new ArgumentException("Passwords do not match");
+        }
+        if (!registerModel.Email.Contains("@"))
+        {
+            throw new ArgumentException("Email must contain an @");
+        }
+
+        var json = JsonConvert.SerializeObject(new UserDTO { Username = registerModel.Username, Email = registerModel.Email, Password = registerModel.Password });
+        Console.WriteLine(json);
+        var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
+        var resp = await http.PostAsync("minitwit/register", content);
+        if (resp.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/");
+        }
+        else
+        {
+            Console.WriteLine(resp.Content);
+            throw new HttpRequestException("Something went wrong. Please try again");
+        }
+    }
+}
