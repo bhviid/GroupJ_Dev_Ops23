@@ -17,5 +17,10 @@
     <ProjectReference Include="..\Shared\MiniTwit.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+     <InternalsVisibleTo Include="..\server.test\server.test.csproj" />
+  </ItemGroup>
+
+
 
 </Project>

@@ -127,7 +127,6 @@ public class MiniTwitController : ControllerBase
     [Consumes("application/json")]
     public string Register()
     {
-
         return "You were successfully registered and can login now";
     }
 }
