@@ -1,3 +1,4 @@
+namespace MiniTwit.Shared;
 public record UserDTO
 {
     public string Username { get; set; }

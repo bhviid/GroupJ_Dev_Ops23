@@ -1,5 +1,4 @@
 namespace MiniTwit.Shared;
-
 public class Message
 {
     public int MessageId { get; set; }

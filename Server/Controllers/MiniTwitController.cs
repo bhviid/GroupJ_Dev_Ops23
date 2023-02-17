@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SQLite;
 using MiniTwit.Shared;
-using Newtonsoft.Json.Linq;
 
 namespace MiniTwit.Server.Controllers;
 
@@ -43,8 +42,12 @@ public class MiniTwitController : ControllerBase, IDisposable
         var SQL = @$"select message.*, user.* from message, user
         where message.flagged = 0 and message.author_id = user.user_id
         order by message.pub_date desc limit {_perPage}";
-
-        return Ok(GetMsgPairData(SQL));
+        var result = (from m in _db.Messages
+        join u in _db.Users on m.AuthorId equals u.UserId
+        where m.Flagged == 0
+        orderby m.PubDate descending
+        select new {m, u}).Take(_perPage);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -68,14 +71,8 @@ public class MiniTwitController : ControllerBase, IDisposable
         int? whoId = GetUserId(whoUsername);
         int? whomId = GetUserId(whomUsername);
 
-        // var result = from _db.Followings
-        // select 
-        // string SQL = @$"select 1 from follower where
-        //     follower.who_id = {whoId} and follower.whom_id = {whomId}";
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = SQL;
-        // var result = sqlCmd.ExecuteScalar();
-        // _sqliteConn.Close();
+        var result = from f in _db.Followings where f.who_id == whoId && f.whom_id == whomId select f;
+        
         return result is not null ? Ok(true) : Ok(false);
     }
 
@@ -83,49 +80,57 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Route("/minitwit/{username}")]
     public IActionResult GetUserTimeline(string username)
     {
-        _sqliteConn.Open();
-        string profile_userSQL = $"""select * from user where username = "{username}" """;
-        Console.WriteLine(profile_userSQL);
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = profile_userSQL;
-        var s = sqlCmd.ExecuteReader();
-        User profileUser;
-    
-        if(s.Read())
-        {
-            profileUser = new User 
-            {
-                UserId = s.GetInt32(0),
-                Username = s.GetString(1),
-                Email = s.GetString(2),
-            };
-        }
-        else return NotFound();
-        _sqliteConn.Close();
-
-        string SQL = @$"select message.*, user.* from message, user where
-            user.user_id = message.author_id and user.user_id = {profileUser.UserId}
-            order by message.pub_date desc limit {_perPage}";
         
-        return Ok(GetMsgPairData(SQL));
+        var user = (User)(from u in _db.Users where u.Username == username select u);
+        // string profile_userSQL = $"""select * from user where username = "{username}" """;
+        // Console.WriteLine(profile_userSQL);
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = profile_userSQL;
+        // var s = sqlCmd.ExecuteReader();
+        // User profileUser;
+    
+        // if(s.Read())
+        // {
+        //     profileUser = new User 
+        //     {
+        //         UserId = s.GetInt32(0),
+        //         Username = s.GetString(1),
+        //         Email = s.GetString(2),
+        //     };
+        // }
+        if (user is null)
+        {
+            return NotFound();
+        }
+        var timeline = (from m in _db.Messages 
+        join u in _db.Users on m.AuthorId equals u.UserId 
+        orderby m.PubDate descending 
+        select new {u, m}).Take(_perPage);
+
+        // string SQL = @$"select message.*, user.* from message, user where
+        //     user.user_id = message.author_id and user.user_id = {profileUser.UserId}
+        //     order by message.pub_date desc limit {_perPage}";
+        
+        return Ok(timeline);
     }
 
     [HttpPost]
     [Route("{username}/follow")]
     [Consumes("application/json")]
-    public IActionResult Follow(string username, User activeUser)
+    public async Task<IActionResult> Follow(string username, User activeUser)
     {
         Console.WriteLine("yo");
         var whomId = GetUserId(username);
         if(whomId is null) return NotFound();
 
-        _sqliteConn.Open();
-        var SQL = @$"insert into follower (who_id, whom_id) values ({activeUser.UserId}, {whomId})";
-        Console.WriteLine(SQL);
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        sqlCmd.ExecuteNonQuery();
-        _sqliteConn.Close();
+        // _sqliteConn.Open();
+        // var SQL = @$"insert into follower (who_id, whom_id) values ({activeUser.UserId}, {whomId})";
+        // Console.WriteLine(SQL);
+        await _db.Followings.AddAsync(new Follows{who_id = activeUser.UserId, whom_id = (int)whomId});
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = SQL;
+        // sqlCmd.ExecuteNonQuery();
+        // _sqliteConn.Close();
         return Ok($"You are now following {username}");
     }
 
@@ -137,21 +142,28 @@ public class MiniTwitController : ControllerBase, IDisposable
         Console.WriteLine("yo");
         var whomId = GetUserId(username);
         if(whomId is null) return NotFound();
-
-        _sqliteConn.Open();
-        var SQL = @$"delete from follower where who_id={activeUser.UserId} and whom_id={whomId}";
-        Console.WriteLine(SQL);
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        sqlCmd.ExecuteNonQuery();
-        _sqliteConn.Close();
+        var toRemove = (from f in _db.Followings
+        where f.who_id == activeUser.UserId && f.whom_id == whomId
+        select f).First();
+        if (toRemove is null)
+        {
+            return NotFound("You are not following this user");
+        }
+        _db.Followings.Remove(toRemove);
+        // _sqliteConn.Open();
+        // var SQL = @$"delete from follower where who_id={activeUser.UserId} and whom_id={whomId}";
+        // Console.WriteLine(SQL);
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = SQL;
+        // sqlCmd.ExecuteNonQuery();
+        // _sqliteConn.Close();
         return Ok($"You are no longer following {username}");
     }
 
     [HttpPost]
     [Route("add-message")]
     [Consumes("application/json")]
-    public IActionResult AddMessage(Message message)
+    public async Task<IActionResult> AddMessage(MessageDTO message)
     {
         _sqliteConn.Open();
 
@@ -163,17 +175,22 @@ public class MiniTwitController : ControllerBase, IDisposable
         sqlCmd.ExecuteNonQuery();
 
         _sqliteConn.Close();
+
+        _db.Messages.Add(new Message{MessageId})
         return Ok($"Message posted: {message.Text}");
     }
     private int? GetUserId(string username)
     {
-        _sqliteConn.Open();
-        string SQL = $"""select user_id from user where username = "{username}" """;
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        var s = sqlCmd.ExecuteScalar();
-        _sqliteConn.Close();
-        return s is not null ? Int32.Parse(s.ToString()) : null;
+        // _sqliteConn.Open();
+        // string SQL = $"""select user_id from user where username = "{username}" """;
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = SQL;
+        // var s = sqlCmd.ExecuteScalar();
+        // _sqliteConn.Close();
+        var s = from u in _db.Users 
+        where u.Username == username
+        select u.UserId;
+        return s is not null ? Int32.Parse(s.ToString()!) : null;
     }
 
     private List<MsgDataPair> GetMsgPairData(string SQLCMD)
