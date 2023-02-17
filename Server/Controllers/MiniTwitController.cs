@@ -9,7 +9,8 @@ namespace MiniTwit.Server.Controllers;
 [Route("[controller]")]
 public class MiniTwitController : ControllerBase, IDisposable
 {
-    SQLiteConnection _sqliteConn;
+    TwitContext _db;
+    // SQLiteConnection _sqliteConn;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
     static SQLiteConnection CreateConnection()
@@ -29,11 +30,11 @@ public class MiniTwitController : ControllerBase, IDisposable
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
 
-    public MiniTwitController(ILogger<MiniTwitController> logger, SQLiteConnection conn)
+    public MiniTwitController(ILogger<MiniTwitController> logger, TwitContext db)
     {
         _logger = logger;
         //_sqliteConn = CreateConnection();
-        _sqliteConn = conn;
+        _db = db;
     }
 
     [HttpGet]
@@ -62,18 +63,19 @@ public class MiniTwitController : ControllerBase, IDisposable
     }
 
     [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
-    public IActionResult IsFollower(string whoUsername, string whomUsername)
+    public async Task<IActionResult> IsFollower(string whoUsername, string whomUsername)
     {
         int? whoId = GetUserId(whoUsername);
         int? whomId = GetUserId(whomUsername);
 
-        _sqliteConn.Open();
-        string SQL = @$"select 1 from follower where
-            follower.who_id = {whoId} and follower.whom_id = {whomId}";
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        var result = sqlCmd.ExecuteScalar();
-        _sqliteConn.Close();
+        // var result = from _db.Followings
+        // select 
+        // string SQL = @$"select 1 from follower where
+        //     follower.who_id = {whoId} and follower.whom_id = {whomId}";
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = SQL;
+        // var result = sqlCmd.ExecuteScalar();
+        // _sqliteConn.Close();
         return result is not null ? Ok(true) : Ok(false);
     }
 
