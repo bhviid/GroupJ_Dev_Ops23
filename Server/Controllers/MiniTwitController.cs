@@ -156,7 +156,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         if(whomId is null) return NotFound();
         var toRemove = (from f in _db.Followings
         where f.who_id == activeUser.UserId && f.whom_id == whomId
-        select f).First();
+        select f).FirstOrDefault();
         if (toRemove is null)
         {
             return NotFound("You are not following this user");
@@ -301,8 +301,8 @@ public class MiniTwitController : ControllerBase, IDisposable
 
         var user = (from u in _db.Users
         where u.Username == username
-        select u).First();
-        return (User)user;
+        select u).FirstOrDefault();
+        return user!;
     }
 
     private bool UserExists(UserDTO user)
