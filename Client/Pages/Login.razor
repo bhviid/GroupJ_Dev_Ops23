@@ -31,6 +31,14 @@
     private LoginModel _model = new();
     public string? ErrorMessage { get; set; }
 
+    protected override void OnInitialized()
+    {
+        if(uService.IsSignedIn())
+        {
+            navigation.NavigateTo("/");
+        }
+    }
+
     private async void HandleLoginSubmit()
     {
         UserLoginDTO toPost = new(_model.Username, _model.Password);
@@ -41,14 +49,27 @@
         {
             // his only shows when hitting the sign in button a second time ???
             ErrorMessage = resp.ReasonPhrase;
+            return;
         }
 
-        //TODO: implement and use the end point from controller!
-        //var userToSignIn = resp.Content.ReadFromJsonAsync<UserDTO>();
+        var userToSignIn = await resp.Content.ReadFromJsonAsync<UserDTO>();
 
-        var userToSignIn = new User{UserId = 1, Username = "Roger Histand", Email ="billy@example.com"};
-        uService.ActiveUser = userToSignIn;
-        navigation.NavigateTo("/");
+        if(userToSignIn is null)
+        {
+            ErrorMessage = "Something went wrong, try again";
+            _model.Reset();
+            
+        }
+        else 
+        {
+            uService.ActiveUser = new User
+                {
+                    Email = userToSignIn.Email, 
+                    Username = userToSignIn.Username,
+                    Password = userToSignIn.Password
+                };
+            navigation.NavigateTo("/");
+        }
     }
 }
 

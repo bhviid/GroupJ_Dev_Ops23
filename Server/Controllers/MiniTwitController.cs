@@ -132,7 +132,6 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public IActionResult UnFollow(string username, User activeUser)
     {
-        Console.WriteLine("yo");
         var whomId = GetUserId(username);
         if(whomId is null) return NotFound();
 
@@ -259,6 +258,46 @@ public class MiniTwitController : ControllerBase, IDisposable
         username LIKE '{user.Username}'";
         var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
         return res > 0;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserLoginDTO loginData)
+    {
+        _sqliteConn.Open();
+
+        var sql = "select * from user where username = @uname";
+        var cmd = _sqliteConn.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Parameters.AddWithValue("@uname",loginData.Username);
+        var reader = await cmd.ExecuteReaderAsync();
+        
+        if(!reader.Read())
+        {
+            _sqliteConn.Close();
+            return Problem(
+                detail: "Invalid username",
+                statusCode: StatusCodes.Status401Unauthorized
+            );
+        }
+        UserDTO userInDb = new(){
+            Email = (string)reader["email"],
+            Username = (string)reader["username"],
+            Password = (string)reader["pw_hash"]
+        };
+        _sqliteConn.Close();
+
+        // hash the password from Post/request
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(loginData.Password));
+        var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
+        //check if the hash from db matches the hash from post/request.
+        if(userInDb.Password != PwHash){
+            return Problem(
+                detail: "Invalid password",
+                statusCode: StatusCodes.Status401Unauthorized
+            );
+        }
+        return Ok(userInDb);
     }
 
     public void Dispose()
