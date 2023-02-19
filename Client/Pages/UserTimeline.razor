@@ -1,13 +1,14 @@
 @page "/{username}"
 @inject HttpClient http
 @inject NavigationManager navigation
+@inject UserService uService
 
 <h2>@username timeline</h2>
 
-@if (User is not null)
+@if (uService.ActiveUser is not null)
 {
     <div class=followstatus>
-        @if(User.Username == username)
+        @if(uService.ActiveUser.Username == username)
         {
             <span>this is you!</span>
         }
@@ -34,8 +35,7 @@
 
 @code 
 {
-    [CascadingParameter]
-    public User? User {get; set;}
+    private User? User;
 
     public bool Followed { get; set; }
 
@@ -48,6 +48,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        User = uService.ActiveUser;
         var httpRes = await http.GetAsync($"/minitwit/{username}");
 
         if(!httpRes.IsSuccessStatusCode)
@@ -61,15 +62,13 @@
         {
             Followed = await http.GetFromJsonAsync<bool>($"/minitwit/is-follower/{User.Username}/{username}");
         }
-        //MsgDataPair[] res = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/{username}");   
-  
-        
+         
         foreach(var m in res!)
         {
             var authormail = m.Item2.email;
             gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
         }
-        TwitData = res!.ToList();
+        TwitData = res!.ToList();        
     }
 
     private async Task HandleFollow()

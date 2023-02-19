@@ -1,12 +1,13 @@
 @page "/"
 @inject HttpClient http
 @inject NavigationManager navigation
+@inject UserService uService
 
 <h2>public timeline</h2>
-@if (User is not null)
+@if (uService.ActiveUser is not null)
 {    
     <div class=twitbox>
-    <h3>What's on your mind @User.Username?</h3>
+    <h3>What's on your mind @uService.ActiveUser.Username?</h3>
     <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
         <p>
             <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
@@ -21,7 +22,6 @@
 
 @code 
 {
-    [CascadingParameter]
     public User? User {get; set;}
 
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
@@ -43,8 +43,9 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        if(User is not null)
+        if(uService.ActiveUser is not null)
         {
+            User = uService.ActiveUser;
             await GetTwitData();
         }
         else 
