@@ -47,8 +47,8 @@
         
         if(!resp.IsSuccessStatusCode)
         {
-            // his only shows when hitting the sign in button a second time ???
             ErrorMessage = resp.ReasonPhrase;
+            StateHasChanged();
             return;
         }
 
@@ -57,8 +57,7 @@
         if(userToSignIn is null)
         {
             ErrorMessage = "Something went wrong, try again";
-            _model.Reset();
-            
+            StateHasChanged();
         }
         else 
         {

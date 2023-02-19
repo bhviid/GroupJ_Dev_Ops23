@@ -274,10 +274,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         if(!reader.Read())
         {
             _sqliteConn.Close();
-            return Problem(
-                detail: "Invalid username",
-                statusCode: StatusCodes.Status401Unauthorized
-            );
+            return StatusCode(StatusCodes.Status401Unauthorized, "Invalid username");
         }
         UserDTO userInDb = new(){
             Email = (string)reader["email"],
@@ -292,10 +289,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
         //check if the hash from db matches the hash from post/request.
         if(userInDb.Password != PwHash){
-            return Problem(
-                detail: "Invalid password",
-                statusCode: StatusCodes.Status401Unauthorized
-            );
+            return StatusCode(StatusCodes.Status401Unauthorized, "Invalid password");
         }
         return Ok(userInDb);
     }
