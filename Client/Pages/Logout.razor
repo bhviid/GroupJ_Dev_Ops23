@@ -1,0 +1,19 @@
+@page "/logout"
+@inject UserService uSerivce
+@inject NavigationManager nav
+
+<span>
+    Signing out...
+</span>
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        if(uSerivce.IsSignedIn())
+        {
+            uSerivce.SignOut();
+        }
+        nav.NavigateTo("/public");
+    }
+}
