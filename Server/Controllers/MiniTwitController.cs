@@ -148,15 +148,21 @@ public class MiniTwitController : ControllerBase, IDisposable
     [HttpPost]
     [Route("add-message")]
     [Consumes("application/json")]
-    public IActionResult AddMessage(Message message)
+    public IActionResult AddMessage(MessageCreateDTO message)
     {
+        var authorId = GetUserId(message.Author);
+        if(authorId is null) return BadRequest();
+
         _sqliteConn.Open();
 
-        var currTimeInSecSince1970 = DateTime.Now - Jan1970;
+        var currTimeInSecSince1970 = (int) (DateTime.Now - Jan1970).TotalSeconds;
 
-        var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
+        var SQL = $"insert into message (author_id, text, pub_date, flagged) values (@aid, @text, {currTimeInSecSince1970}, 0)";
         var sqlCmd = _sqliteConn.CreateCommand();
         sqlCmd.CommandText = SQL;
+        sqlCmd.Parameters.AddWithValue("@aid", authorId);
+        sqlCmd.Parameters.AddWithValue("@text", message.Text);
+
         sqlCmd.ExecuteNonQuery();
 
         _sqliteConn.Close();

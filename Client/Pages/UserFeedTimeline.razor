@@ -28,10 +28,11 @@
     private MessageSubmitModel thisModel = new();
     private async void HandleSubmit()
     {
-        Message toPost = new Message{AuthorId = User.UserId, Text = thisModel.WhatsOnYourMindString,
-                        PubDate = DateTime.Now, Flagged = 0};
+        if(User is null) return;
 
-        var resp = await http.PostAsJsonAsync<Message>($"/minitwit/add-message",toPost);
+        var toPost = new MessageCreateDTO(User.Username, thisModel.WhatsOnYourMindString);
+
+        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message",toPost);
         
         if(resp.IsSuccessStatusCode)
         {
@@ -55,7 +56,7 @@
     private async Task GetTwitData()
     {
         MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}") ?? Array.Empty<MsgDataPair>(); 
+        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User!.UserId}") ?? Array.Empty<MsgDataPair>(); 
 
         TwitData = res!.ToList();
     }
