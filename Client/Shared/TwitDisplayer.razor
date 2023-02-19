@@ -5,7 +5,7 @@
         {
             <li>
                 @* Replace text@example.com with msg.email, msg.author.email*@
-                <img src=@Gravatars[msgAuthor.Item2.email]>
+                <img src=@msgAuthor.Item2.gravatar>
                 <p>
                     <strong>
                         <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
@@ -26,7 +26,4 @@
 {
     [Parameter]
     public List<MsgDataPair> TwitData { get; set; }
-
-    [Parameter]
-    public Dictionary<string,string> Gravatars { get; set; }
 }

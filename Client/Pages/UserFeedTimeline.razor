@@ -18,16 +18,13 @@
     </div>
 }
 
-<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
+<TwitDisplayer TwitData="TwitData" />
 
 @code 
 {
     public User? User {get; set;}
 
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
-    private Dictionary<string, string> gravatars = new Dictionary<string, string>();
-    private int gravatarSize = 48;
-
     private MessageSubmitModel thisModel = new();
     private async void HandleSubmit()
     {
@@ -60,11 +57,6 @@
         MsgDataPair[] res =
         await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}") ?? Array.Empty<MsgDataPair>(); 
 
-        foreach(var m in res!)
-        {
-            var authormail = m.Item2.email;
-            gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
-        }
         TwitData = res!.ToList();
     }
 }

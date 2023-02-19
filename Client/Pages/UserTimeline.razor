@@ -31,7 +31,7 @@
         }
     </div>
 }
-<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
+<TwitDisplayer TwitData="TwitData" />
 
 @code 
 {
@@ -43,8 +43,6 @@
     public string? username { get; set; }
 
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
-    private Dictionary<string, string> gravatars = new Dictionary<string, string>();
-    private int gravatarSize = 48;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,12 +60,7 @@
         {
             Followed = await http.GetFromJsonAsync<bool>($"/minitwit/is-follower/{User.Username}/{username}");
         }
-         
-        foreach(var m in res!)
-        {
-            var authormail = m.Item2.email;
-            gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
-        }
+        
         TwitData = res!.ToList();        
     }
 

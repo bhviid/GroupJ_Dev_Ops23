@@ -193,7 +193,7 @@ public class MiniTwitController : ControllerBase, IDisposable
                 Flagged = s.GetInt32(4),
             };
             var author = new Author(
-                s.GetInt32(5), s.GetString(6), s.GetString(7)
+                s.GetInt32(5), s.GetString(6), s.GetString(7), Md5Hash(s.GetString(7))
             );
             messages.Add( new MsgDataPair(message,author) );
         }
@@ -203,7 +203,7 @@ public class MiniTwitController : ControllerBase, IDisposable
 
     [HttpGet]
     [Route("md5/{email}/{size}")]
-    public string Md5Hash(string email, int size)
+    public string Md5Hash(string email, int size = 48)
     {
         //Must be here since MD5 is disabled in blazor wasm...
         using var md5 = System.Security.Cryptography.MD5.Create();
