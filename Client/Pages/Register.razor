@@ -9,19 +9,19 @@
 <EditForm Model="@registerModel" OnSubmit="@SignUp">
     Username:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Username"/> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Username"/> <br>
 
     E-Mail:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Email"/> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Email"/> <br>
 
     Password:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.Password"/> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Password"/> <br>
 
     Password (repeat):<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-value="@registerModel.PasswordRepeat"/> <br>
+    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.PasswordRepeat"/> <br>
 
     <button type="submit">Sign Up</button>
 </EditForm> 
@@ -33,14 +33,16 @@
     {
         if (registerModel.Password != registerModel.PasswordRepeat)
         {
-            throw new ArgumentException("Passwords do not match");
+            Console.WriteLine("Passwords do not match");
+            return;
         }
         if (!registerModel.Email.Contains("@"))
         {
-            throw new ArgumentException("Email must contain an @");
+            Console.WriteLine("Email must contain an @");
+            return;
         }
 
-        var json = JsonConvert.SerializeObject(new UserDTO { Username = registerModel.Username, Email = registerModel.Email, Password = registerModel.Password });
+        var json = JsonConvert.SerializeObject(new UserDTO (registerModel.Username, registerModel.Email, registerModel.Password));
         Console.WriteLine(json);
         var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
         var resp = await http.PostAsync("minitwit/register", content);

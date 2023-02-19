@@ -18,6 +18,13 @@ public class TwitContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Message>().HasKey(m => m.MessageId);
+        modelBuilder.Entity<Message>().ToTable("message");
+
         modelBuilder.Entity<User>().HasKey(u => u.UserId);
+        modelBuilder.Entity<User>().ToTable("user");
+
+        modelBuilder.Entity<Follows>().HasKey(f => new {f.who_id, f.whom_id});
+        modelBuilder.Entity<Follows>().ToTable("follower");
+
     }
 }

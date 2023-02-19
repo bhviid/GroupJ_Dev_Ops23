@@ -12,19 +12,19 @@ public class MiniTwitController : ControllerBase, IDisposable
     // SQLiteConnection _sqliteConn;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-    static SQLiteConnection CreateConnection()
-    {
-        var sqliteConn = new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;");
-        try
-        {
-            sqliteConn.Open();
-        }
-        catch (System.Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-        return sqliteConn;
-    }
+    // static SQLiteConnection CreateConnection()
+    // {
+    //     var sqliteConn = new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;");
+    //     try
+    //     {
+    //         sqliteConn.Open();
+    //     }
+    //     catch (System.Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+    //     return sqliteConn;
+    // }
     
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
@@ -39,30 +39,41 @@ public class MiniTwitController : ControllerBase, IDisposable
     [HttpGet]
     public IActionResult GetAllMessages()
     {
-        var SQL = @$"select message.*, user.* from message, user
-        where message.flagged = 0 and message.author_id = user.user_id
-        order by message.pub_date desc limit {_perPage}";
+        // var SQL = @$"select message.*, user.* from message, user
+        // where message.flagged = 0 and message.author_id = user.user_id
+        // order by message.pub_date desc limit {_perPage}";
+
         var result = (from m in _db.Messages
         join u in _db.Users on m.AuthorId equals u.UserId
         where m.Flagged == 0
         orderby m.PubDate descending
-        select new {m, u}).Take(_perPage);
+        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email))).Take(_perPage);
         return Ok(result);
     }
 
     [HttpGet]
     [Route("/minitwit/feed/{userId}")]
-    public IActionResult GetUserFeed(string userId)
+    public IActionResult GetUserFeed(int userId)
     {
         //Does the userId exist?
-        string SQL = @$"select message.*, user.* from message, user
-        where message.flagged = 0 and message.author_id = user.user_id and (
-            user.user_id = {userId} or
-            user.user_id in (select whom_id from follower
-                                    where who_id = {userId}))
-        order by message.pub_date desc limit {_perPage}";
-
-        return Ok(GetMsgPairData(SQL));
+        // string SQL = @$"select message.*, user.* from message, user
+        // where message.flagged = 0 and message.author_id = user.user_id and (
+        //     user.user_id = {userId} or
+        //     user.user_id in (select whom_id from follower
+        //                             where who_id = {userId}))
+        // order by message.pub_date desc limit {_perPage}";
+        var result = (from m in _db.Messages
+        join u in _db.Users on m.AuthorId equals u.UserId
+        where m.Flagged == 0 && (
+            u.UserId == userId || (
+                from f in _db.Followings
+                where f.who_id == userId
+                select f.whom_id
+            ).Contains(u.UserId)
+        )
+        orderby m.PubDate descending
+        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email))).Take(_perPage);
+        return Ok(result);
     }
 
     [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
@@ -105,7 +116,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         var timeline = (from m in _db.Messages 
         join u in _db.Users on m.AuthorId equals u.UserId 
         orderby m.PubDate descending 
-        select new {u, m}).Take(_perPage);
+        select new MsgDataPair (m, new Author(u.UserId, u.Username, u.Email))).Take(_perPage);
 
         // string SQL = @$"select message.*, user.* from message, user where
         //     user.user_id = message.author_id and user.user_id = {profileUser.UserId}
@@ -127,6 +138,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         // var SQL = @$"insert into follower (who_id, whom_id) values ({activeUser.UserId}, {whomId})";
         // Console.WriteLine(SQL);
         await _db.Followings.AddAsync(new Follows{who_id = activeUser.UserId, whom_id = (int)whomId});
+        await _db.SaveChangesAsync();
         // var sqlCmd = _sqliteConn.CreateCommand();
         // sqlCmd.CommandText = SQL;
         // sqlCmd.ExecuteNonQuery();
@@ -150,6 +162,7 @@ public class MiniTwitController : ControllerBase, IDisposable
             return NotFound("You are not following this user");
         }
         _db.Followings.Remove(toRemove);
+        _db.SaveChanges();
         // _sqliteConn.Open();
         // var SQL = @$"delete from follower where who_id={activeUser.UserId} and whom_id={whomId}";
         // Console.WriteLine(SQL);
@@ -165,18 +178,23 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> AddMessage(MessageDTO message)
     {
-        _sqliteConn.Open();
+        // _sqliteConn.Open();
 
-        var currTimeInSecSince1970 = DateTime.Now - Jan1970;
+        // var currTimeInSecSince1970 = DateTime.Now - Jan1970;
 
-        var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        sqlCmd.ExecuteNonQuery();
+        // var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
+        // var sqlCmd = _sqliteConn.CreateCommand();
+        // sqlCmd.CommandText = SQL;
+        // sqlCmd.ExecuteNonQuery();
 
-        _sqliteConn.Close();
+        // _sqliteConn.Close();
 
-        _db.Messages.Add(new Message{MessageId})
+        await _db.Messages.AddAsync(new Message{MessageId = 0,
+        AuthorId = message.AuthorId,
+        Text = message.Text,
+        PubDate = DateTime.Now,
+        Flagged = 0});
+        await _db.SaveChangesAsync();
         return Ok($"Message posted: {message.Text}");
     }
     private int? GetUserId(string username)
@@ -193,32 +211,32 @@ public class MiniTwitController : ControllerBase, IDisposable
         return s is not null ? Int32.Parse(s.ToString()!) : null;
     }
 
-    private List<MsgDataPair> GetMsgPairData(string SQLCMD)
-    {
-        _sqliteConn.Open();
-        var sqlCmd = _sqliteConn.CreateCommand();
-        sqlCmd.CommandText = SQLCMD;
-        var s = sqlCmd.ExecuteReader();
+    // private List<MsgDataPair> GetMsgPairData(string SQLCMD)
+    // {
+    //     _sqliteConn.Open();
+    //     var sqlCmd = _sqliteConn.CreateCommand();
+    //     sqlCmd.CommandText = SQLCMD;
+    //     var s = sqlCmd.ExecuteReader();
 
-        var messages = new List<MsgDataPair>();
-        while (s.Read())
-        {
-            var message = new Message()
-            {
-                MessageId = s.GetInt32(0),
-                AuthorId = s.GetInt32(1),
-                Text = s.GetString(2),
-                PubDate =  new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(s.GetInt32(3)),
-                Flagged = s.GetInt32(4),
-            };
-            var author = new Author(
-                s.GetInt32(5), s.GetString(6), s.GetString(7)
-            );
-            messages.Add( new MsgDataPair(message,author) );
-        }
-        _sqliteConn.Close();
-        return messages;
-    }
+    //     var messages = new List<MsgDataPair>();
+    //     while (s.Read())
+    //     {
+    //         var message = new Message()
+    //         {
+    //             MessageId = s.GetInt32(0),
+    //             AuthorId = s.GetInt32(1),
+    //             Text = s.GetString(2),
+    //             PubDate =  new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(s.GetInt32(3)),
+    //             Flagged = s.GetInt32(4),
+    //         };
+    //         var author = new Author(
+    //             s.GetInt32(5), s.GetString(6), s.GetString(7)
+    //         );
+    //         messages.Add( new MsgDataPair(message,author) );
+    //     }
+    //     _sqliteConn.Close();
+    //     return messages;
+    // }
 
     [HttpGet]
     [Route("md5/{email}/{size}")]
@@ -235,49 +253,67 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> Register(UserDTO user)
     {
-        await _sqliteConn.OpenAsync();
-        if (await UserExists(user))
-        {
-            await _sqliteConn.CloseAsync();
-            return Conflict("User already exists");
-        }
+        // await _sqliteConn.OpenAsync();
+        // if (await UserExists(user))
+        // {
+        //     await _sqliteConn.CloseAsync();
+        //     return Conflict("User already exists");
+        // }
 
         using var md5 = System.Security.Cryptography.MD5.Create();
         var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(user.Password));
         var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
 
-        var sqlcmd = _sqliteConn.CreateCommand();
-        sqlcmd.CommandText = $@"INSERT INTO user
-        (username, email, pw_hash) VALUES
-        ('{user.Username}', '{user.Email}', '{PwHash}');";
-        var res = await sqlcmd.ExecuteNonQueryAsync();
+        // var sqlcmd = _sqliteConn.CreateCommand();
+        // sqlcmd.CommandText = $@"INSERT INTO user
+        // (username, email, pw_hash) VALUES
+        // ('{user.Username}', '{user.Email}', '{PwHash}');";
         
-        var createdUserCmd = _sqliteConn.CreateCommand();
-        createdUserCmd.CommandText = @$"SELECT * FROM user WHERE
-        email LIKE '{user.Email}' AND username LIKE '{user.Username}'";
+        if (UserExists(user)) return Conflict("User already exists");
+
+        await _db.Users.AddAsync(new User{UserId = 0,
+        Username = user.Username,
+        Password = PwHash,
+        Email = user.Email});
+        await _db.SaveChangesAsync();
+        var createdUser = GetUser(user.Username);
+        // createdUserCmd.CommandText = @$"SELECT * FROM user WHERE
+        // email LIKE '{user.Email}' AND username LIKE '{user.Username}'";
         
-        var userReader = await createdUserCmd.ExecuteReaderAsync();
-        await userReader.ReadAsync();
-        User createdUser = new User{UserId = (int)(long)userReader["user_id"], 
-        Email = (string)userReader["email"],
-        Username = (string)userReader["username"],
-        Password = (string)userReader["pw_hash"]};
-        await _sqliteConn.CloseAsync();
-        if (res == 1)
+        // var userReader = await createdUserCmd.ExecuteReaderAsync();
+        // await userReader.ReadAsync();
+        // User createdUser = new User{UserId = (int)(long)userReader["user_id"], 
+        // Email = (string)userReader["email"],
+        // Username = (string)userReader["username"],
+        // Password = (string)userReader["pw_hash"]};
+        // await _sqliteConn.CloseAsync();
+        if (createdUser is not null)
         {
             return Created($"user/{createdUser.UserId}", createdUser);
         }
         return BadRequest("Nothing was changed");
     }
 
-    private async Task<bool> UserExists(UserDTO user)
+    
+    public User GetUser(string username)
     {
-        var existsCommand = _sqliteConn.CreateCommand();
-        existsCommand.CommandText = @$"SELECT COUNT(user_id)
-        FROM user WHERE
-        username LIKE '{user.Username}'";
-        var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
-        return res > 0;
+        Console.WriteLine(username);
+
+        var user = (from u in _db.Users
+        where u.Username == username
+        select u).First();
+        return (User)user;
+    }
+
+    private bool UserExists(UserDTO user)
+    {
+        // var existsCommand = _sqliteConn.CreateCommand();
+        // existsCommand.CommandText = @$"SELECT COUNT(user_id)
+        // FROM user WHERE
+        // username LIKE '{user.Username}'";
+        // var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
+        
+        return GetUser(user.Username) is not null;
     }
 
     public void Dispose()
