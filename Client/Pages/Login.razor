@@ -29,7 +29,7 @@
 @code
 {
     private LoginModel _model = new();
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     private async void HandleLoginSubmit()
     {
@@ -43,9 +43,12 @@
             ErrorMessage = resp.ReasonPhrase;
         }
 
+        //TODO: implement and use the end point from controller!
         //var userToSignIn = resp.Content.ReadFromJsonAsync<UserDTO>();
+
         var userToSignIn = new User{UserId = 1, Username = "Roger Histand", Email ="billy@example.com"};
         uService.ActiveUser = userToSignIn;
+        navigation.NavigateTo("/");
     }
 }
 
