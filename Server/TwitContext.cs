@@ -25,7 +25,7 @@ public class TwitContext : DbContext
         modelBuilder.Entity<Message>()
                 .Property(m => m.PubDate)
                 .HasConversion(
-                    c => (int) (DateTime.Now - startTime1970).TotalSeconds,
+                    c => c == null ? (int) (DateTime.Now - startTime1970).TotalSeconds : (int) (c.GetValueOrDefault() - startTime1970).TotalSeconds,
                     c =>  startTime1970.AddSeconds(c));
                     
         modelBuilder.Entity<Message>().ToTable("message");
