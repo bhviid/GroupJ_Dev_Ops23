@@ -1,12 +1,13 @@
 @page "/"
 @inject HttpClient http
 @inject NavigationManager navigation
+@inject UserService uService
 
 <h2>public timeline</h2>
-@if (User is not null)
+@if (uService.ActiveUser is not null)
 {    
     <div class=twitbox>
-    <h3>What's on your mind @User.Username?</h3>
+    <h3>What's on your mind @uService.ActiveUser.Username?</h3>
     <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
         <p>
             <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
@@ -17,24 +18,21 @@
     </div>
 }
 
-<TwitDisplayer TwitData="TwitData" Gravatars="gravatars" />
+<TwitDisplayer TwitData="TwitData" />
 
 @code 
 {
-    [CascadingParameter]
     public User? User {get; set;}
 
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
-    private Dictionary<string, string> gravatars = new Dictionary<string, string>();
-    private int gravatarSize = 48;
-
     private MessageSubmitModel thisModel = new();
     private async void HandleSubmit()
     {
-        Message toPost = new Message{AuthorId = User.UserId, Text = thisModel.WhatsOnYourMindString,
-                        PubDate = DateTime.Now, Flagged = 0};
+        if(User is null) return;
 
-        var resp = await http.PostAsJsonAsync<Message>($"/minitwit/add-message",toPost);
+        var toPost = new MessageCreateDTO(User.Username, thisModel.WhatsOnYourMindString);
+
+        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message",toPost);
         
         if(resp.IsSuccessStatusCode)
         {
@@ -43,8 +41,9 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        if(User is not null)
+        if(uService.ActiveUser is not null)
         {
+            User = uService.ActiveUser;
             await GetTwitData();
         }
         else 
@@ -57,13 +56,8 @@
     private async Task GetTwitData()
     {
         MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.UserId}") ?? Array.Empty<MsgDataPair>(); 
+        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User!.UserId}") ?? Array.Empty<MsgDataPair>(); 
 
-        foreach(var m in res!)
-        {
-            var authormail = m.Author.email;
-            gravatars[authormail] = await http.GetStringAsync($"/minitwit/md5/{authormail}/{gravatarSize}");
-        }
         TwitData = res!.ToList();
     }
 }

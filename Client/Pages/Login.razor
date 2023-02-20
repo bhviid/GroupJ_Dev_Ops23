@@ -1,0 +1,74 @@
+@page "/login"
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject UserService uService
+
+<h2>Sign In</h2>
+@if(ErrorMessage is not null)
+{
+    <div class=error>
+        <strong>Error:</strong> @ErrorMessage
+    </div>
+}    
+<EditForm Model="@_model" OnSubmit="@HandleLoginSubmit">
+<dl>
+    <dt>Username:</dt>
+    <dd>
+    <input type=text name=username size=30 @bind-value="_model.Username" />
+    </dd>
+    <dt>Password:</dt>
+    <dd>
+    <input type=password name=password size=30 @bind-value="_model.Password">
+    </dd>
+</dl>
+<div class=actions>
+    <input type=submit value="Sign In">
+</div>
+</EditForm>
+
+@code
+{
+    private LoginModel _model = new();
+    public string? ErrorMessage { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if(uService.IsSignedIn())
+        {
+            navigation.NavigateTo("/");
+        }
+    }
+
+    private async void HandleLoginSubmit()
+    {
+        UserLoginDTO toPost = new(_model.Username, _model.Password);
+
+        var resp = await http.PostAsJsonAsync<UserLoginDTO>("/minitwit/login", toPost);
+        
+        if(!resp.IsSuccessStatusCode)
+        {
+            ErrorMessage = resp.ReasonPhrase;
+            StateHasChanged();
+            return;
+        }
+
+        var userToSignIn = await resp.Content.ReadFromJsonAsync<UserDTO>();
+
+        if(userToSignIn is null)
+        {
+            ErrorMessage = "Something went wrong, try again";
+            StateHasChanged();
+        }
+        else 
+        {
+            uService.ActiveUser = new User
+                {
+                    Email = userToSignIn.Email, 
+                    Username = userToSignIn.Username,
+                    Password = userToSignIn.Password
+                };
+            navigation.NavigateTo("/");
+        }
+    }
+}
+
