@@ -5,13 +5,13 @@
         {
             <li>
                 @* Replace text@example.com with msg.email, msg.author.email*@
-                <img src=@Gravatars[msgAuthor.Item2.email]>
+                <img src=@Gravatars[msgAuthor.Author.email]>
                 <p>
                     <strong>
-                        <a href="@msgAuthor.Item2.username">@msgAuthor.Item2.username</a>
+                        <a href="@msgAuthor.Author.username">@msgAuthor.Author.username</a>
                     </strong>
-                    @msgAuthor.Item1.Text
-                    <small>&mdash; @msgAuthor.Item1.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
+                    @msgAuthor.Msg.Text
+                    <small>&mdash; @msgAuthor.Msg.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
                 </p>
             </li>
         }

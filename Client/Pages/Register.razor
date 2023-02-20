@@ -33,14 +33,16 @@
     {
         if (registerModel.Password != registerModel.PasswordRepeat)
         {
-            throw new ArgumentException("Passwords do not match");
+            Console.WriteLine("Passwords do not match");
+            return;
         }
         if (!registerModel.Email.Contains("@"))
         {
-            throw new ArgumentException("Email must contain an @");
+            Console.WriteLine("Email must contain an @");
+            return;
         }
 
-        var json = JsonConvert.SerializeObject(new UserDTO { Username = registerModel.Username, Email = registerModel.Email, Password = registerModel.Password });
+        var json = JsonConvert.SerializeObject(new UserDTO (registerModel.Username, registerModel.Email, registerModel.Password));
         Console.WriteLine(json);
         var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
         var resp = await http.PostAsync("minitwit/register", content);
