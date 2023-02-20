@@ -19,15 +19,17 @@ using Newtonsoft.Json;
 public class server_testing : IClassFixture<WebTestFixture>
 {
     private readonly HttpClient _client;
+    private readonly WebTestFixture _factory;
     public server_testing(WebTestFixture factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
     }
 
     [Fact]
     public async void TestSimpleRegister()
     {
-        var response = await Register("user1", "default");
+        var response = await Register("user0", "default");
         response.Should().BeSuccessful();
     }
 
