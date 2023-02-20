@@ -5,24 +5,25 @@
         {
             <li>
                 @* Replace text@example.com with msg.email, msg.author.email*@
-                <img src=@msgAuthor.Item2.gravatar>
+                @* <img src=@msgAuthor.Item2.gravatar> *@
                 <p>
                     <strong>
                         <a href="@msgAuthor.Author.username">@msgAuthor.Author.username</a>
                     </strong>
                     @msgAuthor.Msg.Text
-                    <small>&mdash; @msgAuthor.Msg.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo) </small>
+                    <small>&mdash; @msgAuthor.Msg.PubDate?.ToString("yyyy MM dd @ HH:mm", DateTimeFormatInfo.InvariantInfo)
+                    </small>
                 </p>
             </li>
         }
     }
-    else 
+    else
     {
         <li><em>There's no message so far.</em></li>
     }
 </ul>
 
-@code 
+@code
 {
     [Parameter]
     public List<MsgDataPair> TwitData { get; set; }
