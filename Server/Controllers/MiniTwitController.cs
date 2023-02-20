@@ -62,17 +62,19 @@ public class MiniTwitController : ControllerBase, IDisposable
         //     user.user_id in (select whom_id from follower
         //                             where who_id = {userId}))
         // order by message.pub_date desc limit {_perPage}";
+        
+        // Pretty sure this forces the query to be executed in memory rather than on db
+        //makes it a ton faster, from approx 2sec to <10ms
+        var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
+
         var result = (from m in _db.Messages
         join u in _db.Users on m.AuthorId equals u.UserId
         where m.Flagged == 0 && (
-            u.UserId == userId || (
-                from f in _db.Followings
-                where f.who_id == userId
-                select f.whom_id
-            ).Contains(u.UserId)
+            u.UserId == userId || flws.Contains(u.UserId)
         )
         orderby m.PubDate descending
         select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email))).Take(_perPage);
+
         return Ok(result);
     }
 
