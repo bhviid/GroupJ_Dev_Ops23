@@ -50,15 +50,15 @@ public class MiniTwitController : ControllerBase, IDisposable
         var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
 
         var result = (from m in _db.Messages
-        join u in _db.Users on m.AuthorId equals u.UserId
-        where m.Flagged == 0 && (
-            u.UserId == userId || flws.Contains(u.UserId)
-        )
-        orderby m.PubDate descending
-        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
-                                Utility_Methods.GravatarUrlStringFromEmail(u.Email))
-        ))
-        .Take(_perPage);
+                      join u in _db.Users on m.AuthorId equals u.UserId
+                      where m.Flagged == 0 && (
+                          u.UserId == userId || flws.Contains(u.UserId)
+                      )
+                      orderby m.PubDate descending
+                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
+                                              Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+                      ))
+                    .Take(_perPage);
         return Ok(result);
     }
 
