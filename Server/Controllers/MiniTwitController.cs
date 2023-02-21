@@ -9,40 +9,19 @@ namespace MiniTwit.Server.Controllers;
 public class MiniTwitController : ControllerBase, IDisposable
 {
     TwitContext _db;
-    // SQLiteConnection _sqliteConn;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-
-    // static SQLiteConnection CreateConnection()
-    // {
-    //     var sqliteConn = new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;");
-    //     try
-    //     {
-    //         sqliteConn.Open();
-    //     }
-    //     catch (System.Exception ex)
-    //     {
-    //         Console.WriteLine(ex.Message);
-    //     }
-    //     return sqliteConn;
-    // }
-
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
 
     public MiniTwitController(ILogger<MiniTwitController> logger, TwitContext db)
     {
         _logger = logger;
-        //_sqliteConn = CreateConnection();
         _db = db;
     }
 
     [HttpGet]
     public IActionResult GetAllMessages()
     {
-        // var SQL = @$"select message.*, user.* from message, user
-        // where message.flagged = 0 and message.author_id = user.user_id
-        // order by message.pub_date desc limit {_perPage}";
-
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
@@ -65,20 +44,21 @@ public class MiniTwitController : ControllerBase, IDisposable
         //     user.user_id in (select whom_id from follower
         //                             where who_id = {userId}))
         // order by message.pub_date desc limit {_perPage}";
+        
+        // Pretty sure this forces the query to be executed in memory rather than on db
+        //makes it a ton faster, from approx 2sec to <10ms
+        var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
+
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0 && (
-                          u.UserId == userId || (
-                              from f in _db.Followings
-                              where f.who_id == userId
-                              select f.whom_id
-                          ).Contains(u.UserId)
+                          u.UserId == userId || flws.Contains(u.UserId)
                       )
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
-                                                Utility_Methods.GravatarUrlStringFromEmail(u.Email))
-                        ))
-                      .Take(_perPage);
+                                              Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+                      ))
+                    .Take(_perPage);
         return Ok(result);
     }
 
