@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Data.SQLite;
 using MiniTwit.Shared;
 
 namespace MiniTwit.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class MiniTwitController : ControllerBase, IDisposable
+public class MiniTwitController : ControllerBase
 {
-    TwitContext _db;
+    private readonly TwitContext _db;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
@@ -27,7 +26,7 @@ public class MiniTwitController : ControllerBase, IDisposable
                       where m.Flagged == 0
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
-                                                Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+                                                GravatarUrlStringFromEmail(u.Email))
                        ))
                       .Take(_perPage);
         return Ok(result);
@@ -37,16 +36,8 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Route("/minitwit/feed/{userId}")]
     public IActionResult GetUserFeed(int userId)
     {
-        //Does the userId exist?
-        // string SQL = @$"select message.*, user.* from message, user
-        // where message.flagged = 0 and message.author_id = user.user_id and (
-        //     user.user_id = {userId} or
-        //     user.user_id in (select whom_id from follower
-        //                             where who_id = {userId}))
-        // order by message.pub_date desc limit {_perPage}";
-        
-        // Pretty sure this forces the query to be executed in memory rather than on db
-        //makes it a ton faster, from approx 2sec to <10ms
+        // Pretty sure, that ToList() forces the query to be executed in memory rather than on db
+        //which greatly improves the speed.
         var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
 
         var result = (from m in _db.Messages
@@ -56,7 +47,7 @@ public class MiniTwitController : ControllerBase, IDisposable
                       )
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
-                                              Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+                                              GravatarUrlStringFromEmail(u.Email))
                       ))
                     .Take(_perPage);
         return Ok(result);
@@ -67,6 +58,11 @@ public class MiniTwitController : ControllerBase, IDisposable
     {
         int? whoId = GetUserId(whoUsername);
         int? whomId = GetUserId(whomUsername);
+
+        if(whoId is null || whomId is null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound);
+        }
 
         var result = from f in _db.Followings where f.who_id == whoId && f.whom_id == whomId select f;
 
@@ -82,14 +78,12 @@ public class MiniTwitController : ControllerBase, IDisposable
         {
             return NotFound();
         }
-        var timeline = (from m in _db.Messages
-                        join u in _db.Users on m.AuthorId equals u.UserId
-                        orderby m.PubDate descending
-                        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
-                                                 Utility_Methods.GravatarUrlStringFromEmail(u.Email))))
-                        .Take(_perPage)
-                        .ToList();
-
+        var author = new Author(user.UserId, user.Username, user.Email, GravatarUrlStringFromEmail(user.Email));
+        var timeline = _db.Messages.Where(m => m.AuthorId == user.UserId)
+                                    .OrderByDescending(m => m.PubDate)
+                                    .Select(m => new MsgDataPair(m,author))
+                                    .Take(_perPage)
+                                    .ToArray();
         return Ok(timeline);
     }
 
@@ -98,19 +92,12 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> Follow(string username, User activeUser)
     {
-        Console.WriteLine("yo");
         var whomId = GetUserId(username);
         if (whomId is null) return NotFound();
 
-        // _sqliteConn.Open();
-        // var SQL = @$"insert into follower (who_id, whom_id) values ({activeUser.UserId}, {whomId})";
-        // Console.WriteLine(SQL);
         await _db.Followings.AddAsync(new Follows { who_id = activeUser.UserId, whom_id = (int)whomId });
         await _db.SaveChangesAsync();
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = SQL;
-        // sqlCmd.ExecuteNonQuery();
-        // _sqliteConn.Close();
+
         return Ok($"You are now following {username}");
     }
 
@@ -121,22 +108,19 @@ public class MiniTwitController : ControllerBase, IDisposable
     {
         var whomId = GetUserId(username);
         if (whomId is null) return NotFound();
+        var activeUserId = GetUserId(activeUser.Username) ?? 0;
+
         var toRemove = (from f in _db.Followings
-                        where f.who_id == activeUser.UserId && f.whom_id == whomId
+                        where f.who_id == activeUserId && f.whom_id == whomId
                         select f).FirstOrDefault();
         if (toRemove is null)
         {
             return NotFound("You are not following this user");
         }
+
         _db.Followings.Remove(toRemove);
         _db.SaveChanges();
-        // _sqliteConn.Open();
-        // var SQL = @$"delete from follower where who_id={activeUser.UserId} and whom_id={whomId}";
-        // Console.WriteLine(SQL);
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = SQL;
-        // sqlCmd.ExecuteNonQuery();
-        // _sqliteConn.Close();
+
         return Ok($"You are no longer following {username}");
     }
 
@@ -145,17 +129,6 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> AddMessage(MessageDTO message)
     {
-        // _sqliteConn.Open();
-
-        // var currTimeInSecSince1970 = DateTime.Now - Jan1970;
-
-        // var SQL = $"""insert into message (author_id, text, pub_date, flagged) values ({message.AuthorId}, "{message.Text}", {(int)currTimeInSecSince1970.TotalSeconds}, 0)""";
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = SQL;
-        // sqlCmd.ExecuteNonQuery();
-
-        // _sqliteConn.Close();
-
         await _db.Messages.AddAsync(new Message
         {
             MessageId = 0,
@@ -169,48 +142,13 @@ public class MiniTwitController : ControllerBase, IDisposable
     }
     private int? GetUserId(string username)
     {
-        // _sqliteConn.Open();
-        // string SQL = $"""select user_id from user where username = "{username}" """;
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = SQL;
-        // var s = sqlCmd.ExecuteScalar();
-        // _sqliteConn.Close();
-        var s = from u in _db.Users
-                where u.Username == username
-                select u.UserId;
-        return s is not null ? Int32.Parse(s.ToString()!) : null;
+        var s = _db.Users.Where(u => u.Username == username).FirstOrDefault();
+        return s is not null ? s.UserId : null;
     }
-
-    // private List<MsgDataPair> GetMsgPairData(string SQLCMD)
-    // {
-    //     _sqliteConn.Open();
-    //     var sqlCmd = _sqliteConn.CreateCommand();
-    //     sqlCmd.CommandText = SQLCMD;
-    //     var s = sqlCmd.ExecuteReader();
-
-    //     var messages = new List<MsgDataPair>();
-    //     while (s.Read())
-    //     {
-    //         var message = new Message()
-    //         {
-    //             MessageId = s.GetInt32(0),
-    //             AuthorId = s.GetInt32(1),
-    //             Text = s.GetString(2),
-    //             PubDate =  new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(s.GetInt32(3)),
-    //             Flagged = s.GetInt32(4),
-    //         };
-    //         var author = new Author(
-    //             s.GetInt32(5), s.GetString(6), s.GetString(7)
-    //         );
-    //         messages.Add( new MsgDataPair(message,author) );
-    //     }
-    //     _sqliteConn.Close();
-    //     return messages;
-    // }
 
     [HttpGet]
     [Route("md5/{email}/{size}")]
-    public string Md5Hash(string email, int size = 48)
+    public string Md5HashEmailForGravatarString(string email, int size = 48)
     {
         //Must be here since MD5 is disabled in blazor wasm...
         using var md5 = System.Security.Cryptography.MD5.Create();
@@ -223,21 +161,8 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Consumes("application/json")]
     public async Task<IActionResult> Register(UserCreateDTO user)
     {
-        // await _sqliteConn.OpenAsync();
-        // if (await UserExists(user))
-        // {
-        //     await _sqliteConn.CloseAsync();
-        //     return Conflict("User already exists");
-        // }
+        var PwHash = Md5HashPassword(user.Password);
 
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(user.Password));
-        var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
-
-        // var sqlcmd = _sqliteConn.CreateCommand();
-        // sqlcmd.CommandText = $@"INSERT INTO user
-        // (username, email, pw_hash) VALUES
-        // ('{user.Username}', '{user.Email}', '{PwHash}');";
         if (user.Username == "") return BadRequest("Invalid Username");
         if (user.Password == "") return BadRequest("Password cannot be empty!");
         if (user.Password != user.Password2) return BadRequest("Passwords don't match");
@@ -253,16 +178,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         });
         await _db.SaveChangesAsync();
         var createdUser = GetUser(user.Username);
-        // createdUserCmd.CommandText = @$"SELECT * FROM user WHERE
-        // email LIKE '{user.Email}' AND username LIKE '{user.Username}'";
 
-        // var userReader = await createdUserCmd.ExecuteReaderAsync();
-        // await userReader.ReadAsync();
-        // User createdUser = new User{UserId = (int)(long)userReader["user_id"], 
-        // Email = (string)userReader["email"],
-        // Username = (string)userReader["username"],
-        // Password = (string)userReader["pw_hash"]};
-        // await _sqliteConn.CloseAsync();
         if (createdUser is not null)
         {
             return Created($"user/{createdUser.UserId}", createdUser);
@@ -273,8 +189,6 @@ public class MiniTwitController : ControllerBase, IDisposable
 
     public User GetUser(string username)
     {
-        Console.WriteLine(username);
-
         var user = (from u in _db.Users
                     where u.Username == username
                     select u).FirstOrDefault();
@@ -283,17 +197,9 @@ public class MiniTwitController : ControllerBase, IDisposable
 
     private bool UserExists(UserDTO user)
     {
-        // var existsCommand = _sqliteConn.CreateCommand();
-        // existsCommand.CommandText = @$"SELECT COUNT(user_id)
-        // FROM user WHERE
-        // username LIKE '{user.Username}'";
-        // var res = Convert.ToInt64(await existsCommand.ExecuteScalarAsync());
-
         return GetUser(user.Username) is not null;
     }
 
-    
-        //TODO: NEEDS EFC REWRITE
     [HttpPost("login")]
     public IActionResult Login(UserLoginDTO loginData)
     {
@@ -305,9 +211,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         }
 
         // hash the password from Post/request
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(loginData.Password));
-        var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
+        var PwHash = Md5HashPassword(loginData.Password);
 
         //check if the hash from db matches the hash from post/request.
         if (user.Password != PwHash)
@@ -316,10 +220,20 @@ public class MiniTwitController : ControllerBase, IDisposable
         }
         return Ok(new UserDTO(user.Username, user.Email, user.Password));
     }
-    
-    public void Dispose()
+
+    private string Md5HashPassword(string rawPass) 
     {
-        //_sqliteConn.Close();
-        Console.WriteLine("connection was closed");
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(rawPass));
+        return System.Text.Encoding.UTF8.GetString(md5ed);
     }
+
+    private static String GravatarUrlStringFromEmail(string email, int size)
+    {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
+        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed).ToLower()}?d=identicon&s={size}";
+    }
+
+    private static String GravatarUrlStringFromEmail(string email) => GravatarUrlStringFromEmail(email, 48);
 }

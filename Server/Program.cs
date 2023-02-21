@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MiniTwit.Server;
+using System.Data.SQLite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-// builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;Journal mode=Wal"));
+builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;Journal mode=Wal"));
 builder.Services.AddDbContext<TwitContext>(
     options =>
         options.UseSqlite("Data Source=../tmp/minitwit.db;"));

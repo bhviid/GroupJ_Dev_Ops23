@@ -57,13 +57,4 @@ public class Utility_Methods
                     "application/json"
         );
     }
-
-    public static String GravatarUrlStringFromEmail(string email, int size)
-    {
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
-        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed).ToLower()}?d=identicon&s={size}";
-    }
-
-    public static String GravatarUrlStringFromEmail(string email) => GravatarUrlStringFromEmail(email, 48);
 }
