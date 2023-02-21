@@ -253,7 +253,7 @@ public class MiniTwitController : ControllerBase, IDisposable
     [HttpPost]
     [Route(("register"))]
     [Consumes("application/json")]
-    public async Task<IActionResult> Register(UserDTO user)
+    public async Task<IActionResult> Register(UserCreateDTO user)
     {
         // await _sqliteConn.OpenAsync();
         // if (await UserExists(user))
@@ -270,8 +270,11 @@ public class MiniTwitController : ControllerBase, IDisposable
         // sqlcmd.CommandText = $@"INSERT INTO user
         // (username, email, pw_hash) VALUES
         // ('{user.Username}', '{user.Email}', '{PwHash}');";
-
-        if (UserExists(user)) return Conflict("User already exists");
+        if (user.Username == "") return BadRequest("Invalid Username");
+        if (user.Password == "") return BadRequest("Password cannot be empty!");
+        if (user.Password != user.Password2) return BadRequest("Passwords don't match");
+        if (!Utility_Methods.IsValidEmail(user.Email)) return BadRequest("Invalid E-mail");
+        if (UserExists(new UserDTO(user.Username, user.Email, user.Password))) return Conflict("User already exists");
 
         await _db.Users.AddAsync(new User
         {

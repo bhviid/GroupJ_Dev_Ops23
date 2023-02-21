@@ -1,8 +1,7 @@
 namespace server.test;
 
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using System.Net;
+using MiniTwit.Shared;
 
 /* 
 
@@ -29,30 +28,30 @@ public class server_testing : IClassFixture<WebTestFixture>
     [Fact]
     public async void TestSimpleRegister()
     {
-        var response = await Register("user0", "default");
+        var response = await Register("user0", "default", "default");
         response.Should().BeSuccessful();
     }
 
     [Fact]
     public async void TestRegister()
     {
-        var response = await Register("user1", "default");
-        response.Should().BeSuccessful();
+        var response = await Register("user1", "default", "default");
+        response.Should().HaveStatusCode(HttpStatusCode.Created);
 
-        response = await Register("user1", "default");
+        response = await Register("user1", "default", "default");
         response.Should().HaveClientError();
 
-        // response = await Register("", "default");
-        // Assert.Equal("You have to enter a username", responseContent);
+        response = await Register("", "default", "default");
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        // response = await Register("meh", "");
-        // Assert.Equal("You have to enter a password", responseContent);
+        response = await Register("meh", "", "");
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        //response = await Register("meh", "x", "y");
-        //Assert.Equal("The two passwords do not match", responseContent);
+        response = await Register("meh", "x", "y");
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        //response = await Register("meh", "foo", email: "broken");
-        //Assert.Equal("You have to enter a valid email address", responseContent);
+        response = await Register("meh", "foo", email: "broken");
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
     }
     /*     [Fact]
         public async Task LoginLogoutTest()
@@ -135,17 +134,17 @@ public class server_testing : IClassFixture<WebTestFixture>
     } */
 
     // helper functions
-    private async Task<HttpResponseMessage> Register(string username, string password, string? email = null)
+    private async Task<HttpResponseMessage> Register(string username, string password, string password2 = "", string? email = null)
     {
         if (email == null) email = username + "@example.com";
-        var content = stringify_object(new UserDTO(username, email, password));
+        var content = Utility_Methods.stringify_object(new UserCreateDTO(username, email, password, password2));
         var resp = await _client.PostAsync("minitwit/register", content);
         return resp;
     }
 
     private async Task<HttpResponseMessage> Login(string username, string password)
     {
-        var content = stringify_object(new UserDTO(username, "", password));
+        var content = Utility_Methods.stringify_object(new UserDTO(username, "", password));
         return await _client.PostAsync("minitwit/login", content);
     }
 
@@ -160,18 +159,9 @@ public class server_testing : IClassFixture<WebTestFixture>
         return await _client.GetAsync("minitwit/logout");
     }
 
-    private StringContent stringify_object(Object ob)
-    {
-        return new StringContent(
-                    JsonConvert.SerializeObject(ob).ToString(),
-                    Encoding.UTF8,
-                    "application/json"
-        );
-    }
-
     private async Task<HttpResponseMessage> AddMessage(string text)
     {
-        var json = JsonConvert.SerializeObject(new Message
+        var content = Utility_Methods.stringify_object(new Message
         {
             AuthorId = 0,
             Text = text,
@@ -179,10 +169,7 @@ public class server_testing : IClassFixture<WebTestFixture>
             Flagged = 0
         });
         // Console.WriteLine(json);
-        var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
-
         var response = await _client.PostAsync("minitwit/add_message", content);
-
         return response;
     }
 }
