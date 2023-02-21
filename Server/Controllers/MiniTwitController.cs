@@ -47,7 +47,7 @@ public class MiniTwitController : ControllerBase, IDisposable
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
                       orderby m.PubDate descending
-                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, ""))).Take(_perPage);
+                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, Md5Hash(u.Email, 48)))).Take(_perPage);
         return Ok(result);
     }
 
@@ -72,7 +72,7 @@ public class MiniTwitController : ControllerBase, IDisposable
                           ).Contains(u.UserId)
                       )
                       orderby m.PubDate descending
-                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, ""))).Take(_perPage);
+                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, Md5Hash(u.Email, 48)))).Take(_perPage);
         return Ok(result);
     }
 
@@ -116,7 +116,7 @@ public class MiniTwitController : ControllerBase, IDisposable
         var timeline = (from m in _db.Messages
                         join u in _db.Users on m.AuthorId equals u.UserId
                         orderby m.PubDate descending
-                        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, ""))).Take(_perPage);
+                        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, Md5Hash(u.Email, 48)))).Take(_perPage);
 
         // string SQL = @$"select message.*, user.* from message, user where
         //     user.user_id = message.author_id and user.user_id = {profileUser.UserId}
