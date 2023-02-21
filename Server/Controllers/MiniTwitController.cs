@@ -9,45 +9,27 @@ namespace MiniTwit.Server.Controllers;
 public class MiniTwitController : ControllerBase, IDisposable
 {
     TwitContext _db;
-    // SQLiteConnection _sqliteConn;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-
-    // static SQLiteConnection CreateConnection()
-    // {
-    //     var sqliteConn = new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;");
-    //     try
-    //     {
-    //         sqliteConn.Open();
-    //     }
-    //     catch (System.Exception ex)
-    //     {
-    //         Console.WriteLine(ex.Message);
-    //     }
-    //     return sqliteConn;
-    // }
-
     private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
 
     public MiniTwitController(ILogger<MiniTwitController> logger, TwitContext db)
     {
         _logger = logger;
-        //_sqliteConn = CreateConnection();
         _db = db;
     }
 
     [HttpGet]
     public IActionResult GetAllMessages()
     {
-        // var SQL = @$"select message.*, user.* from message, user
-        // where message.flagged = 0 and message.author_id = user.user_id
-        // order by message.pub_date desc limit {_perPage}";
-
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
                       orderby m.PubDate descending
-                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, ""))).Take(_perPage);
+                      select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
+                                                Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+                       ))
+                      .Take(_perPage);
         return Ok(result);
     }
 
@@ -73,7 +55,10 @@ public class MiniTwitController : ControllerBase, IDisposable
             u.UserId == userId || flws.Contains(u.UserId)
         )
         orderby m.PubDate descending
-        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email))).Take(_perPage);
+        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
+                                Utility_Methods.GravatarUrlStringFromEmail(u.Email))
+        ))
+        .Take(_perPage);
         return Ok(result);
     }
 
@@ -92,24 +77,7 @@ public class MiniTwitController : ControllerBase, IDisposable
     [Route("/minitwit/{username}")]
     public IActionResult GetUserTimeline(string username)
     {
-
-        var user = (User)(from u in _db.Users where u.Username == username select u);
-        // string profile_userSQL = $"""select * from user where username = "{username}" """;
-        // Console.WriteLine(profile_userSQL);
-        // var sqlCmd = _sqliteConn.CreateCommand();
-        // sqlCmd.CommandText = profile_userSQL;
-        // var s = sqlCmd.ExecuteReader();
-        // User profileUser;
-
-        // if(s.Read())
-        // {
-        //     profileUser = new User 
-        //     {
-        //         UserId = s.GetInt32(0),
-        //         Username = s.GetString(1),
-        //         Email = s.GetString(2),
-        //     };
-        // }
+        var user = (from u in _db.Users where u.Username == username select u).FirstOrDefault();
         if (user is null)
         {
             return NotFound();
@@ -117,11 +85,10 @@ public class MiniTwitController : ControllerBase, IDisposable
         var timeline = (from m in _db.Messages
                         join u in _db.Users on m.AuthorId equals u.UserId
                         orderby m.PubDate descending
-                        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, ""))).Take(_perPage);
-
-        // string SQL = @$"select message.*, user.* from message, user where
-        //     user.user_id = message.author_id and user.user_id = {profileUser.UserId}
-        //     order by message.pub_date desc limit {_perPage}";
+                        select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
+                                                 Utility_Methods.GravatarUrlStringFromEmail(u.Email))))
+                        .Take(_perPage)
+                        .ToList();
 
         return Ok(timeline);
     }
@@ -325,44 +292,31 @@ public class MiniTwitController : ControllerBase, IDisposable
         return GetUser(user.Username) is not null;
     }
 
-    /* 
-        TODO: NEEDS EFC REWRITE
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(UserLoginDTO loginData)
+    
+        //TODO: NEEDS EFC REWRITE
+    [HttpPost("login")]
+    public IActionResult Login(UserLoginDTO loginData)
+    {
+        var user = _db.Users.Where(u => u.Username == loginData.Username).FirstOrDefault();
+
+        if(user is null)
         {
-            _sqliteConn.Open();
-
-            var sql = "select * from user where username = @uname";
-            var cmd = _sqliteConn.CreateCommand();
-            cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue("@uname", loginData.Username);
-            var reader = await cmd.ExecuteReaderAsync();
-
-            if (!reader.Read())
-            {
-                _sqliteConn.Close();
-                return StatusCode(StatusCodes.Status401Unauthorized, "Invalid username");
-            }
-            UserDTO userInDb = new()
-            {
-                Email = (string)reader["email"],
-                Username = (string)reader["username"],
-                Password = (string)reader["pw_hash"]
-            };
-            _sqliteConn.Close();
-
-            // hash the password from Post/request
-            using var md5 = System.Security.Cryptography.MD5.Create();
-            var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(loginData.Password));
-            var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
-            //check if the hash from db matches the hash from post/request.
-            if (userInDb.Password != PwHash)
-            {
-                return StatusCode(StatusCodes.Status401Unauthorized, "Invalid password");
-            }
-            return Ok(userInDb);
+            return StatusCode(StatusCodes.Status401Unauthorized, "Invalid username");
         }
-     */
+
+        // hash the password from Post/request
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(loginData.Password));
+        var PwHash = System.Text.Encoding.UTF8.GetString(md5ed);
+
+        //check if the hash from db matches the hash from post/request.
+        if (user.Password != PwHash)
+        {
+            return StatusCode(StatusCodes.Status401Unauthorized, "Invalid password");
+        }
+        return Ok(new UserDTO(user.Username, user.Email, user.Password));
+    }
+    
     public void Dispose()
     {
         //_sqliteConn.Close();

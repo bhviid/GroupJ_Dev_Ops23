@@ -4,8 +4,7 @@
         @foreach (var msgAuthor in TwitData)
         {
             <li>
-                @* Replace text@example.com with msg.email, msg.author.email*@
-                @* <img src=@msgAuthor.Item2.gravatar> *@
+                <img src=@msgAuthor.Author.gravatar> 
                 <p>
                     <strong>
                         <a href="@msgAuthor.Author.username">@msgAuthor.Author.username</a>
