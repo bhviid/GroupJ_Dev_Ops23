@@ -1,50 +1,59 @@
 @page "/register"
 @inject HttpClient http
 @inject NavigationManager navigation
-@using Newtonsoft.Json
 <PageTitle>Sign Up</PageTitle>
 
 <h2>Sign Up</h2>
 
+<label>@ErrorMessageLabel</label>
+
 <EditForm Model="@registerModel" OnSubmit="@SignUp">
     Username:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Username"/> <br>
+    &emsp;&emsp;&emsp;
+    <InputText @bind-Value="@registerModel.Username" /> <br>
 
     E-Mail:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Email"/> <br>
+    &emsp;&emsp;&emsp;
+    <InputText @bind-Value="@registerModel.Email" /> <br>
 
     Password:<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.Password"/> <br>
+    &emsp;&emsp;&emsp;
+    <InputText @bind-Value="@registerModel.Password" /> <br>
 
     Password (repeat):<br>
 
-    &emsp;&emsp;&emsp;<InputText @bind-Value="@registerModel.PasswordRepeat"/> <br>
+    &emsp;&emsp;&emsp;
+    <InputText @bind-Value="@registerModel.PasswordRepeat" /> <br>
 
     <button type="submit">Sign Up</button>
-</EditForm> 
+</EditForm>
 
 @code {
+    private string? ErrorMessageLabel;
     private RegisterModel registerModel = new();
 
     private async void SignUp()
     {
-        if (registerModel.Password != registerModel.PasswordRepeat)
-        {
-            Console.WriteLine("Passwords do not match");
-            return;
-        }
-        if (!registerModel.Email.Contains("@"))
-        {
-            Console.WriteLine("Email must contain an @");
-            return;
-        }
-
-        var json = JsonConvert.SerializeObject(new UserDTO (registerModel.Username, registerModel.Email, registerModel.Password));
-        Console.WriteLine(json);
-        var content = new StringContent(json.ToString(), System.Text.Encoding.UTF8, "application/json");
+        @* if (registerModel.Password != registerModel.PasswordRepeat)
+{
+Console.WriteLine("Passwords do not match");
+return;
+}
+if (!registerModel.Email.Contains("@"))
+{
+Console.WriteLine("Email must contain an @");
+return;
+}
+*@
+        var content = Utility_Methods.stringify_object(new UserCreateDTO(
+        registerModel.Username,
+        registerModel.Email,
+        registerModel.Password,
+        registerModel.PasswordRepeat)
+        );
         var resp = await http.PostAsync("minitwit/register", content);
         if (resp.IsSuccessStatusCode)
         {
@@ -52,8 +61,11 @@
         }
         else
         {
+            var error_message = await resp.Content.ReadAsStringAsync();
+            ErrorMessageLabel = $"Error ({resp.StatusCode}): {error_message}";
+            StateHasChanged();
             Console.WriteLine(resp.Content);
-            throw new HttpRequestException("Something went wrong. Please try again");
+            //throw new HttpRequestException($"Something went wrong. Please try again {ErrorMessageLabel}");
         }
     }
 }
