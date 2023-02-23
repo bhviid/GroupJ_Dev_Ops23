@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
+using MiniTwit.Server;
 using System.Data.SQLite;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;Journal mode=Wal"));
+builder.Services.AddDbContext<TwitContext>(
+    options =>
+        options.UseSqlite("Data Source=../tmp/minitwit.db;"));
 
 var app = builder.Build();
 
@@ -29,9 +34,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+public partial class Program { }
