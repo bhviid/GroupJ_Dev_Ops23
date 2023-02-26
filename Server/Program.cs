@@ -1,7 +1,12 @@
+using System.Data.SQLite;
 using Microsoft.EntityFrameworkCore;
 using MiniTwit.Server;
-using System.Data.SQLite;
 
+var builder2 = new ConfigurationBuilder(); // Create a ConfigurationBuilder instance
+builder2.AddEnvironmentVariables("ConnectionString"); // Load the connection string from the environment variable
+var config = builder2.Build(); // Build the configuration object
+var localPostgresConnectionString = "";
+var connectionString = config["inDocker"] == "1" ? config["ConnectionString"] : localPostgresConnectionString;// Get the connection string from the configuration object
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -12,8 +17,13 @@ builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data 
 builder.Services.AddDbContext<TwitContext>(
     options =>
         options.UseSqlite("Data Source=../tmp/minitwit.db;"));
+/* builder.Services.AddDbContext<TwitContext>(
+options =>
+    options.UseNpgsql(connectionString));
+ */
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
