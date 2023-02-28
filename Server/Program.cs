@@ -34,8 +34,8 @@ var context = scope.ServiceProvider.GetRequiredService<TwitContext>();
 if (!context.Database.IsInMemory() && context.Database.GetPendingMigrations().Any())
 {
     context.Database.Migrate();
-    context.Database.EnsureCreated();
 }
+    context.Database.EnsureCreated();
 
 app.UseHttpsRedirection();
 
