@@ -72,9 +72,8 @@ public class MiniTwitController : ControllerBase
             return StatusCode(StatusCodes.Status404NotFound);
         }
 
-        var result = from f in _db.Followings where f.who_id == whoId && f.whom_id == whomId select f;
-
-        return result is not null ? Ok(true) : Ok(false);
+        var res = _db.Followings.Where(f => f.who_id == whoId && f.whom_id == whomId).Select(f => f).FirstOrDefault();
+        return res is not null ? Ok(true) : Ok(false);
     }
 
     [HttpGet]
