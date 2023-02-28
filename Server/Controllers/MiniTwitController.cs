@@ -127,12 +127,18 @@ public class MiniTwitController : ControllerBase
     [HttpPost]
     [Route("add-message")]
     [Consumes("application/json")]
-    public async Task<IActionResult> AddMessage(MessageDTO message)
+    public async Task<IActionResult> AddMessage(MessageCreateDTO message)
     {
+        var authorId = GetUserId(message.Author);
+        if(authorId is null)
+        {
+            return BadRequest();
+        }
+
         await _db.Messages.AddAsync(new Message
         {
             MessageId = 0,
-            AuthorId = message.AuthorId,
+            AuthorId = authorId.Value,
             Text = message.Text,
             PubDate = DateTime.Now,
             Flagged = 0
