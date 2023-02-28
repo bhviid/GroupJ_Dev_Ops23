@@ -57,9 +57,8 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DROPLET_IP_ADDRESS }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          passphrase: ${{ secrets.DROPLET_PASSPHRASE }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
+          username: root
+          key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
             docker stop minitwit || true
             docker rm minitwit || true
