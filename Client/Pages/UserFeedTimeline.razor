@@ -23,7 +23,6 @@
 @code 
 {
     public User? User {get; set;}
-
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private MessageSubmitModel thisModel = new();
     private async void HandleSubmit()
@@ -59,5 +58,6 @@
         await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>(); 
 
         TwitData = res!.ToList();
+        StateHasChanged();
     }
 }
