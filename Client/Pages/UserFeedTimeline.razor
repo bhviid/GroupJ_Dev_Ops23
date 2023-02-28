@@ -3,7 +3,7 @@
 @inject NavigationManager navigation
 @inject UserService uService
 
-<h2>public timeline</h2>
+<h2>Your feed 🐅</h2>
 @if (uService.ActiveUser is not null)
 {    
     <div class=twitbox>
@@ -56,7 +56,7 @@
     private async Task GetTwitData()
     {
         MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User!.UserId}") ?? Array.Empty<MsgDataPair>(); 
+        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>(); 
 
         TwitData = res!.ToList();
     }
