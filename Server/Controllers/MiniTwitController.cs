@@ -33,9 +33,17 @@ public class MiniTwitController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/minitwit/feed/{userId}")]
-    public IActionResult GetUserFeed(int userId)
+    [Route("/minitwit/feed/{username}")]
+    public IActionResult GetUserFeed(string username)
     {
+        //the user who's feed we would like to get it.
+        var userId = GetUserId(username);
+        Console.WriteLine($" {userId}, {username}");
+        if(userId is null)
+        {
+            return NotFound();
+        }
+
         // Pretty sure, that ToList() forces the query to be executed in memory rather than on db
         //which greatly improves the speed.
         var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
