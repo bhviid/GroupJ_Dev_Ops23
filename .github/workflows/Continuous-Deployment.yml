@@ -81,4 +81,4 @@ jobs:
             docker stop slimtwit || true
             docker rm slimtwit || true
             docker pull bhviid/slimtwit
-            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name slimtwit -p 5235:80 bhviid/slimtwit:latest
+            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name slimtwit -p 5236:80 bhviid/slimtwit:latest
