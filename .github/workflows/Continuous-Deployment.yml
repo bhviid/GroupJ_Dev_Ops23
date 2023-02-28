@@ -48,9 +48,9 @@ jobs:
           context: .
           file: $DOCKERFILE_NAME
           push: true
-          tags: $DOCKER_IMAGE_NAME:latest
-          cache-from: type=registry,ref=$DOCKER_IMAGE_NAME:webbuildcache
-          cache-to: type=registry,ref=$DOCKER_IMAGE_NAME:webbuildcache,mode=max
+          tags: bhviid/devops:latest
+          cache-from: type=registry,ref=bhviid/devops:webbuildcache
+          cache-to: type=registry,ref=bhviid/devops:webbuildcache,mode=max
 
 
       - name: Deploy to Droplet
