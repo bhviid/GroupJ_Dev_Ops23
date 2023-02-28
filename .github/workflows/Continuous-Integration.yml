@@ -1,0 +1,39 @@
+---
+name: Continuous-Integration
+
+on:
+  push:
+    branches:
+      - development
+
+  pull_request:
+    branches:
+      - development
+      - main
+      - master
+    paths-ignore:
+      - "*.md"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Test
+        run: dotnet test
