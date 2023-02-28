@@ -1,5 +1,6 @@
 using System.Data.SQLite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
 using MiniTwit.Server;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,11 +31,11 @@ else
 }
 using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<TwitContext>();
-if (context.Database.GetPendingMigrations().Any())
+if (!context.Database.IsInMemory() && context.Database.GetPendingMigrations().Any())
 {
     context.Database.Migrate();
+    context.Database.EnsureCreated();
 }
-context.Database.EnsureCreated();
 
 app.UseHttpsRedirection();
 
