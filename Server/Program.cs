@@ -1,6 +1,6 @@
 using System.Data.SQLite;
 using Microsoft.EntityFrameworkCore;
-using MiniTwit.Server;
+using MiniTwit.Shared;
 
 var builder2 = new ConfigurationBuilder(); // Create a ConfigurationBuilder instance
 builder2.AddEnvironmentVariables("ConnectionString"); // Load the connection string from the environment variable

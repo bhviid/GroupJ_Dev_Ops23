@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniTwit.Shared", "Shared\M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "server.test", "server.test\server.test.csproj", "{7436C7CF-9090-4DD9-AE1E-24C601E5018D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimTwit", "SlimTwit\SlimTwit.csproj", "{487B60AB-7991-495A-97AD-C228A604BCAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,18 @@ Global
 		{7436C7CF-9090-4DD9-AE1E-24C601E5018D}.Release|x64.Build.0 = Release|Any CPU
 		{7436C7CF-9090-4DD9-AE1E-24C601E5018D}.Release|x86.ActiveCfg = Release|Any CPU
 		{7436C7CF-9090-4DD9-AE1E-24C601E5018D}.Release|x86.Build.0 = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|x64.Build.0 = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Debug|x86.Build.0 = Debug|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|x64.Build.0 = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|x86.ActiveCfg = Release|Any CPU
+		{487B60AB-7991-495A-97AD-C228A604BCAF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
