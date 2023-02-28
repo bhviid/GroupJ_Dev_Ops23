@@ -45,6 +45,9 @@ Vagrant.configure("2") do |config|
   # Pull Docker image from Docker Hub and run it
   config.vm.provision "docker" do |d|
     d.pull_images "bhviid/devops:v0.0.1"
-    d.run "web", ports: ["8080:5235"], image: "bhviid/devops:v0.0.1"
+    d.run "minitwit", 
+      ports: ["8080:5235"], 
+      image: "bhviid/devops:latest", 
+      args: "-e connection_string=" + ENV['connection_string']
   end
 end
