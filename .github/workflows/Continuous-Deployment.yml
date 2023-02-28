@@ -18,7 +18,7 @@ on:
 
 env:
   CONTAINER_NAME: minitwit
-  DOCKER_IMAGE_NAME: $DOCKER_HUB_USERNAME/devops
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/devops
   DOCKERFILE_NAME: MiniTwitPostgres.Dockerfile
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
