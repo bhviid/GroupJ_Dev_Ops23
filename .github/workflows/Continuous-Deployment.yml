@@ -63,4 +63,4 @@ jobs:
             docker stop minitwit || true
             docker rm minitwit || true
             docker pull bhviid/devops
-            docker run -d -e connection_string=${{ secrets.CONNECTION_STRING }} --name minitwit -p 80:80 bhviid/devops
+            docker run -d -e connection_string=${{ secrets.CONNECTION_STRING }} --name minitwit -p 5235:80 bhviid/devops
