@@ -62,5 +62,5 @@ jobs:
           script: |
             docker stop minitwit || true
             docker rm minitwit || true
-            docker pull MiniTwitPostgres.Dockerfile:latest
-            docker run -d -e connection_string=$POSTGRESS_CONNECTION_STRING --name minitwit -p 80:80 ${{ secrets.DOCKER_USERNAME }}/devops:latest
+            docker pull bhviid/devops
+            docker run -d -e connection_string=${{ secrets.CONNECTION_STRING }} --name minitwit -p 80:80 bhviid/devops
