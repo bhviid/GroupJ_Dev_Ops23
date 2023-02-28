@@ -22,7 +22,7 @@ env:
   DOCKERFILE_NAME: MiniTwitPostgres.Dockerfile
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  POSTGRESS_CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+  POSTGRESS_CONNECTION_STRING: ${{ secrets.POSTGRES_CONNECTION_STRING }}
 
 jobs:
   build:
@@ -63,4 +63,4 @@ jobs:
             docker stop minitwit || true
             docker rm minitwit || true
             docker pull bhviid/devops
-            docker run -d -e connection_string=${{ secrets.CONNECTION_STRING }} --name minitwit -p 5235:80 bhviid/devops:latest
+            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name minitwit -p 5235:80 bhviid/devops:latest
