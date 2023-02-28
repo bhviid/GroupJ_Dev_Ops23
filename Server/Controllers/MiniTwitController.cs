@@ -100,9 +100,12 @@ public class MiniTwitController : ControllerBase
     public async Task<IActionResult> Follow(string username, User activeUser)
     {
         var whomId = GetUserId(username);
+        var activeUserId = GetUserId(activeUser.Username);
         if (whomId is null) return NotFound();
+        //Should never happen tbh, since we know a logged in user has a username in the frontend.
+        if(activeUserId is null) return BadRequest();
 
-        await _db.Followings.AddAsync(new Follows { who_id = activeUser.UserId, whom_id = (int)whomId });
+        await _db.Followings.AddAsync(new Follows { who_id = activeUserId.Value, whom_id = whomId.Value });
         await _db.SaveChangesAsync();
 
         return Ok($"You are now following {username}");
