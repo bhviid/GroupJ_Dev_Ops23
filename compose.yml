@@ -12,6 +12,18 @@ services:
       - "5235:80"
     depends_on:
       - postgres
+  simulation:
+    build:
+      context: .
+      dockerfile: SlimTwit.Dockerfile
+    image: minitwit-simulation
+    environment:
+      connection_string: Host=postgres;Port=5432;Database=minitwit;Username=ole;Password=veryhardcode
+    ports:
+      - "5236:80"
+    depends_on:
+      - postgres
+      - minitwitter
   postgres:
     container_name: postgres
     image: postgres:latest

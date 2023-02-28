@@ -38,7 +38,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build and push MiniTwitimage
+      - name: Build and push MiniTwit
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -47,6 +47,16 @@ jobs:
           tags: bhviid/devops:latest
           cache-from: type=registry,ref=bhviid/devops:webbuildcache
           cache-to: type=registry,ref=bhviid/devops:webbuildcache,mode=max
+
+      - name: Build and push Minitwit-simulation
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: SlimTwit.Dockerfile
+          push: true
+          tags: bhviid/SlimTwit:latest
+          cache-from: type=registry,ref=bhviid/SlimTwit:webbuildcache
+          cache-to: type=registry,ref=bhviid/SlimTwit:webbuildcache,mode=max
 
 
       - name: Deploy to Production MiniTwit
@@ -68,7 +78,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            docker stop minitwit || true
-            docker rm minitwit || true
-            docker pull bhviid/devops
-            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name minitwit -p 5235:80 bhviid/devops:latest
+            docker stop SlimTwit || true
+            docker rm SlimTwit || true
+            docker pull bhviid/SlimTwit
+            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name SlimTwit -p 5235:80 bhviid/SlimTwit:latest
