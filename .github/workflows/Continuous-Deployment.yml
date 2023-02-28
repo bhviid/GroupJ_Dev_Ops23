@@ -13,8 +13,8 @@ on:
       - master
       
   # allow manual triggers for now too
-  workflow_dispatch:
-    manual: true
+  # workflow_dispatch:
+  #  manual: true
 
 env:
   CONTAINER_NAME: minitwit
@@ -46,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: $DOCKERFILE_NAME
+          file: MiniTwitPostgres.Dockerfile
           push: true
           tags: bhviid/devops:latest
           cache-from: type=registry,ref=bhviid/devops:webbuildcache
@@ -60,7 +60,7 @@ jobs:
           username: ${{ env.DROPLET_USERNAME }}
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
-            docker stop $CONTAINER_NAME || true
-            docker rm $CONTAINER_NAME || true
-            docker pull $DOCKER_IMAGE_NAME:latest
-            docker run -d -e connection_string=$POSTGRESS_CONNECTION_STRING --name $CONTAINER_NAME -p 80:80 $DOCKER_IMAGE_NAME:latest
+            docker stop minitwit || true
+            docker rm minitwit || true
+            docker pull MiniTwitPostgres.Dockerfile:latest
+            docker run -d -e connection_string=$POSTGRESS_CONNECTION_STRING --name minitwit -p 80:80 ${{ secrets.DOCKER_USERNAME }}/devops:latest
