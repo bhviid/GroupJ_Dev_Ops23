@@ -13,16 +13,16 @@ on:
       - master
       
   # allow manual triggers for now too
-  workflow_dispatch:
-    manual: true
+  # workflow_dispatch:
+  #  manual: true
 
 env:
   CONTAINER_NAME: minitwit
-  DOCKER_IMAGE_NAME: $DOCKER_HUB_USERNAME/devops
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/devops
   DOCKERFILE_NAME: MiniTwitPostgres.Dockerfile
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  POSTGRESS_CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
+  POSTGRESS_CONNECTION_STRING: ${{ secrets.POSTGRES_CONNECTION_STRING }}
 
 jobs:
   build:
@@ -36,8 +36,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: $DOCKER_HUB_USERNAME
-          password: $DOCKER_HUB_PASSWORD
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -46,21 +46,21 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: $DOCKERFILE_NAME
+          file: MiniTwitPostgres.Dockerfile
           push: true
-          tags: $DOCKER_IMAGE_NAME:latest
-          cache-from: type=registry,ref=$DOCKER_IMAGE_NAME:webbuildcache
-          cache-to: type=registry,ref=$DOCKER_IMAGE_NAME:webbuildcache,mode=max
+          tags: bhviid/devops:latest
+          cache-from: type=registry,ref=bhviid/devops:webbuildcache
+          cache-to: type=registry,ref=bhviid/devops:webbuildcache,mode=max
 
 
       - name: Deploy to Droplet
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.DROPLET_IP_ADDRESS }}
-          username: ${{ env.DROPLET_USERNAME }}
-          password: ${{ secrets.DROPLET_PASSWORD }}
+          host: ${{ secrets.DROPLET_IP_ADDRESS }}
+          username: root
+          key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            docker stop $CONTAINER_NAME || true
-            docker rm $CONTAINER_NAME || true
-            docker pull $DOCKER_IMAGE_NAME:latest
-            docker run -d -e connection_string=$POSTGRESS_CONNECTION_STRING --name $CONTAINER_NAME -p 80:80 $DOCKER_IMAGE_NAME:latest
+            docker stop minitwit || true
+            docker rm minitwit || true
+            docker pull bhviid/devops
+            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name minitwit -p 5235:80 bhviid/devops:latest

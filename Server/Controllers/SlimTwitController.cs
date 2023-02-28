@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Data.SQLite;
+using MiniTwit.Shared;
 
 namespace MiniTwit.Server;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class SlimTwitController : ControllerBase, IDisposable
+public class SlimTwitController : ControllerBase
 {
-    SQLiteConnection _conn;
-
+    TwitContext _db;
+    DateTime startTime1970 = new (1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
     public static int _latest;
     
     private int TimeSince1970 => (int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
@@ -19,16 +19,11 @@ public class SlimTwitController : ControllerBase, IDisposable
                 statusCode: StatusCodes.Status403Forbidden
             );
 
-    public SlimTwitController(SQLiteConnection conn)
+    public SlimTwitController(TwitContext db)
     {
-        _conn = conn;
-        _conn.Open();
-    } 
-
-    public void Dispose()
-    {
-        _conn.Close();
+        _db = db;
     }
+    
     private bool IsRequestFromSimulator(HttpRequest req)
     {
         var reqAuth = req.Headers["Authorization"];
@@ -43,17 +38,16 @@ public class SlimTwitController : ControllerBase, IDisposable
             ? newLatest
             : -1;
         _latest = newLatest;
-        //Console.WriteLine(_latest);
     }
 
     //Code duplication
     private int? GetUserId(string username)
     {
-        string SQL = $"""select user_id from user where username = "{username}" """;
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = SQL;
-        var s = sqlCmd.ExecuteScalar();
-        return s is not null ? Int32.Parse(s.ToString()):null;
+        var res = (from u in _db.Users
+            where u.Username == username
+            select u).FirstOrDefault();
+            
+        return res == null ? null : res.UserId;
     }
 
     [HttpGet]
@@ -63,11 +57,13 @@ public class SlimTwitController : ControllerBase, IDisposable
     }
 
     [HttpPost]
-    public IActionResult Register(RegisterInfo userInfo)
+    public async Task<IActionResult> Register(RegisterInfo userInfo)
     {
         updateLatest(Request);
 
         string? err = null;
+
+        Console.WriteLine(userInfo);
 
         if(userInfo.username is null) 
             err = ("You have to enter a username");
@@ -83,14 +79,8 @@ public class SlimTwitController : ControllerBase, IDisposable
             return BadRequest(err);
         }
 
-        string sql = $"""INSERT INTO user (username, email, pw_hash) VALUES (@uname,@email, @pwd) """;
-
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = sql;
-        sqlCmd.Parameters.AddWithValue("@uname",userInfo.username);
-        sqlCmd.Parameters.AddWithValue("@email",userInfo.email);
-        sqlCmd.Parameters.AddWithValue("@pwd",userInfo.pwd);
-        sqlCmd.ExecuteNonQuery();
+        await _db.AddAsync(new User { UserId = 0, Username = userInfo.username!, Email = userInfo.email!, Password = userInfo.pwd! });
+        await _db.SaveChangesAsync();
 
         Console.WriteLine("SQL ran");
 
@@ -112,11 +102,33 @@ public class SlimTwitController : ControllerBase, IDisposable
             Int32.TryParse(Request.Query["no"], out numberOfMsgs)
             ? numberOfMsgs : 100;
 
-        string sql = @"SELECT message.*, user.* FROM message, user
-        WHERE message.flagged = 0 AND message.author_id = user.user_id
-        ORDER BY message.pub_date DESC LIMIT @num";
+        var msgs = (from m in _db.Messages
+            join u in _db.Users
+                on m.AuthorId equals u.UserId
+            where m.Flagged == 0
+            orderby m.PubDate descending
+                select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
+            var filteredMsgs = FilterMsgs(msgs);
 
-        return Ok( GetMsgs(sql, numberOfMsgs) );
+        return Ok( filteredMsgs );
+    }
+
+    public IEnumerable<FileteredMsg> FilterMsgs(IQueryable<MsgDataPair> msgs)
+    {
+        foreach (var msgDataPair in msgs)
+        {
+            yield return new FileteredMsg(
+                msgDataPair.Msg.Text,
+                DateToInt(msgDataPair.Msg.PubDate),
+                msgDataPair.Author.ToString());
+        }
+    }
+
+    int DateToInt(DateTime? dt)
+    {
+        return dt == null
+            ? (int)(DateTime.Now - startTime1970).TotalSeconds
+            : (int)(dt.GetValueOrDefault() - startTime1970).TotalSeconds;
     }
 
     [HttpGet]
@@ -137,15 +149,16 @@ public class SlimTwitController : ControllerBase, IDisposable
             Int32.TryParse(Request.Query["no"], out numberOfMsgs)
             ? numberOfMsgs : 100;
 
-        string sql = @"SELECT message.*, user.* FROM message, user 
-                   WHERE message.flagged = 0 AND
-                   user.user_id = message.author_id AND user.user_id = ?
-                   ORDER BY message.pub_date DESC LIMIT @num";
-        return Ok( GetMsgs(sql, numberOfMsgs) );
+        var msgs = (from m in _db.Messages
+            join u in _db.Users on m.AuthorId equals u.UserId
+            where u.UserId == userId && m.Flagged == 0
+            orderby m.PubDate descending
+            select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
+        return Ok( FilterMsgs(msgs) );
     }
 
     [HttpPost("~/[controller]/msgs/{username}")]
-    public IActionResult MsgsCreateAs(string username, CreateFilteredMsg toCreate)
+    public async  Task<IActionResult> MsgsCreateAs(string username, CreateFilteredMsg toCreate)
     {
         updateLatest(Request);
         if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
@@ -153,15 +166,8 @@ public class SlimTwitController : ControllerBase, IDisposable
         var userId = GetUserId(username);
         if(userId is null) return NotFound();
 
-        var sql = @"INSERT INTO message (author_id, text, pub_date, flagged)
-                   VALUES (@aid, @c, @t, 0)";
-        
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = sql;
-        sqlCmd.Parameters.AddWithValue("@aid", userId);
-        sqlCmd.Parameters.AddWithValue("@c",toCreate.content);
-        sqlCmd.Parameters.AddWithValue("@t",TimeSince1970);
-        sqlCmd.ExecuteNonQuery();
+        await _db.Messages.AddAsync(new Message{AuthorId = userId.Value, Flagged = 0, MessageId = 0, PubDate = DateTime.Now, Text = toCreate.content});
+        await _db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -182,30 +188,21 @@ public class SlimTwitController : ControllerBase, IDisposable
             Int32.TryParse(Request.Query["no"], out numberOfFllws)
             ? numberOfFllws : 100;
         
-        string sql = @"SELECT user.username FROM user
-                   INNER JOIN follower ON follower.whom_id=user.user_id
-                   WHERE follower.who_id=@who
-                   LIMIT @num";
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = sql;
-        sqlCmd.Parameters.AddWithValue("@who", userId);
-        sqlCmd.Parameters.AddWithValue("@num", numberOfFllws);
-        var reader = sqlCmd.ExecuteReader();
+        
+        
+        var followers = (from u in _db.Users
+        join f in _db.Followings on u.UserId equals f.whom_id
+        where f.who_id == userId
+        select u.Username).Take(numberOfFllws);
 
-        var followerNames = new List<string>();
-        while(reader.Read())
-        {
-            followerNames.Add(reader.GetString(0));
-        }
-
-        return Ok(followerNames);
+        return Ok(followers);
     }
 
     //this username is different from the Get method
         //this username is the one who we are acting as.
         //so the username is (un)following someone else.
     [HttpPost("~/[controller]/fllws/{username}")]
-    public IActionResult FllowOrUnfollowAsUser(string username, FollowOrUnFollowReq fReq)
+    public async Task<IActionResult> FllowOrUnfollowAsUser(string username, FollowOrUnFollowReq fReq)
     {
         updateLatest(Request);
 
@@ -214,52 +211,25 @@ public class SlimTwitController : ControllerBase, IDisposable
         var userId = GetUserId(username);
         if(userId is null) return NotFound();
 
-        string sql;
-        int whomId;
+        // string sql;
+        
         if(fReq.follow is not null)
         {
             var followsUsername = fReq.follow;
             var followsUserId = GetUserId(followsUsername);
             if(followsUserId is null) return NotFound();
 
-            sql = @"INSERT INTO follower (who_id, whom_id) VALUES (@who, @whom)";
-            whomId = followsUserId.Value;
+            await _db.Followings.AddAsync(new Follows{who_id = userId.Value, whom_id = followsUserId.Value});
         }
         else //then it is an unfollow request
         {
             var followsUserId = GetUserId(fReq.unfollow!);
             if(followsUserId is null) return NotFound();
-            
-            sql = @"DELETE FROM follower WHERE who_id=@who and WHOM_ID=@whom";
-            whomId = followsUserId.Value;
+            await _db.Followings.AddAsync(new Follows{who_id = userId.Value, whom_id = followsUserId.Value});
         }
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = sql;
-        sqlCmd.Parameters.AddWithValue("@who", userId);
-        sqlCmd.Parameters.AddWithValue("@whom", whomId);
-        sqlCmd.ExecuteNonQuery();
 
+        await _db.SaveChangesAsync();
         return NoContent();
-    }
-
-    private List<FileteredMsg> GetMsgs(string sql, int numberOfMsgs)
-    {
-        var sqlCmd = _conn.CreateCommand();
-        sqlCmd.CommandText = sql;
-        sqlCmd.Parameters.AddWithValue("@num",numberOfMsgs);
-        var reader = sqlCmd.ExecuteReader();
-        
-        var filteredMsgs = new List<FileteredMsg>();
-        while(reader.Read())
-        {
-            filteredMsgs.Add(new FileteredMsg
-            (
-                reader.GetString(2),
-                reader.GetInt32(3),
-                reader.GetString(6)
-            ));
-        }
-        return filteredMsgs;
     }
 
     public record RegisterInfo(string? username, string? email, string? pwd);

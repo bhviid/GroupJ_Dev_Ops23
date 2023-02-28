@@ -1,11 +1,20 @@
 @page "/register"
 @inject HttpClient http
 @inject NavigationManager navigation
+@inject UserService uService
+@using Newtonsoft.Json
 <PageTitle>Sign Up</PageTitle>
 
 <h2>Sign Up</h2>
 
-<label>@ErrorMessageLabel</label>
+@if (ErrorMessageLabel is not null)
+{
+    <div class="error">
+        <label>@ErrorMessageLabel</label>
+    </div>
+}
+
+
 
 <EditForm Model="@registerModel" OnSubmit="@SignUp">
     Username:<br>
@@ -21,33 +30,23 @@
     Password:<br>
 
     &emsp;&emsp;&emsp;
-    <InputText @bind-Value="@registerModel.Password" /> <br>
+    <InputText type="password" @bind-Value="@registerModel.Password" /> <br>
 
     Password (repeat):<br>
 
     &emsp;&emsp;&emsp;
-    <InputText @bind-Value="@registerModel.PasswordRepeat" /> <br>
+    <InputText type="password" @bind-Value="@registerModel.PasswordRepeat" /> <br>
 
     <button type="submit">Sign Up</button>
 </EditForm>
 
 @code {
+    
     private string? ErrorMessageLabel;
     private RegisterModel registerModel = new();
 
     private async void SignUp()
     {
-        @* if (registerModel.Password != registerModel.PasswordRepeat)
-{
-Console.WriteLine("Passwords do not match");
-return;
-}
-if (!registerModel.Email.Contains("@"))
-{
-Console.WriteLine("Email must contain an @");
-return;
-}
-*@
         var content = Utility_Methods.stringify_object(new UserCreateDTO(
         registerModel.Username,
         registerModel.Email,
@@ -57,12 +56,12 @@ return;
         var resp = await http.PostAsync("minitwit/register", content);
         if (resp.IsSuccessStatusCode)
         {
+            uService.ActiveUser = await resp.Content.ReadFromJsonAsync<User>();;
             navigation.NavigateTo("/");
         }
         else
         {
-            var error_message = await resp.Content.ReadAsStringAsync();
-            ErrorMessageLabel = $"Error ({resp.StatusCode}): {error_message}";
+            ErrorMessageLabel = resp.ReasonPhrase;
             StateHasChanged();
             Console.WriteLine(resp.Content);
             //throw new HttpRequestException($"Something went wrong. Please try again {ErrorMessageLabel}");
