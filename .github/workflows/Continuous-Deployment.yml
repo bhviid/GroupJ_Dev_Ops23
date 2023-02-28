@@ -56,8 +56,8 @@ jobs:
       - name: Deploy to Droplet
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.DROPLET_IP_ADDRESS }}
-          username: ${{ env.DROPLET_USERNAME }}
+          host: ${{ secrets.DROPLET_IP_ADDRESS }}
+          username: ${{ secrets.DROPLET_USERNAME }}
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
             docker stop minitwit || true
