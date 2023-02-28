@@ -1,19 +1,12 @@
-using System.Data.SQLite;
 using Microsoft.EntityFrameworkCore;
+using MiniTwit.Shared;
 using Microsoft.EntityFrameworkCore.InMemory;
-using MiniTwit.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
-/* 
-SQLite debug
-builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;Journal mode=Wal"));
-builder.Services.AddDbContext<TwitContext>(
-    options =>
-        options.UseSqlite("Data Source=../tmp/minitwit.db;")); */
 
 var app = builder.Build();
 
