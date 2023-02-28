@@ -58,7 +58,8 @@ jobs:
         with:
           host: ${{ secrets.DROPLET_IP_ADDRESS }}
           username: ${{ secrets.DROPLET_USERNAME }}
-          password: ${{ secrets.DROPLET_PASSWORD }}
+          passphrase: ${{ secrets.DROPLET_PASSPHRASE }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
             docker stop minitwit || true
             docker rm minitwit || true
