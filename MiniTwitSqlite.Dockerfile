@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
 WORKDIR /app
 
 # Copy the project file(s) to the container
-COPY . ./
+COPY ./ ./
 
 WORKDIR /app/Server/
 
@@ -34,7 +34,7 @@ COPY --from=build-env /app/out .
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80
-# EXPOSE 5235
+EXPOSE 5235
 
 # Start the application
 ENTRYPOINT ["dotnet", "MiniTwit.Server.dll"]
