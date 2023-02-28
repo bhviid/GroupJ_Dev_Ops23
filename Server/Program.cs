@@ -2,25 +2,17 @@ using System.Data.SQLite;
 using Microsoft.EntityFrameworkCore;
 using MiniTwit.Server;
 
-var builder2 = new ConfigurationBuilder(); // Create a ConfigurationBuilder instance
-builder2.AddEnvironmentVariables("ConnectionString"); // Load the connection string from the environment variable
-var config = builder2.Build(); // Build the configuration object
-var localPostgresConnectionString = "";
-var connectionString = config["inDocker"] == "1" ? config["ConnectionString"] : localPostgresConnectionString;// Get the connection string from the configuration object
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
+builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
+/* 
+SQLite debug
 builder.Services.AddSingleton<SQLiteConnection>(c => new SQLiteConnection("Data Source=../tmp/minitwit.db;Version=3;Journal mode=Wal"));
 builder.Services.AddDbContext<TwitContext>(
     options =>
-        options.UseSqlite("Data Source=../tmp/minitwit.db;"));
-/* builder.Services.AddDbContext<TwitContext>(
-options =>
-    options.UseNpgsql(connectionString));
- */
+        options.UseSqlite("Data Source=../tmp/minitwit.db;")); */
 
 var app = builder.Build();
 
@@ -36,6 +28,13 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+using var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<TwitContext>();
+if (context.Database.GetPendingMigrations().Any())
+{
+    context.Database.Migrate();
+}
+context.Database.EnsureCreated();
 
 app.UseHttpsRedirection();
 
