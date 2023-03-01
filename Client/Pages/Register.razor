@@ -1,11 +1,25 @@
 @page "/register"
 @inject HttpClient http
 @inject NavigationManager navigation
+@inject UserService uService
 <PageTitle>Sign Up</PageTitle>
 
 <h2>Sign Up</h2>
 
-<label>@ErrorMessageLabel</label>
+@if (errorArr is not null)
+{
+    <div class="error">
+    @if (errorArr!.Length > 1)
+        {
+            for (int i = 1; i < errorArr!.Length; i++)
+            {
+                <label>@errorArr[i]</label> <br />
+            }
+        }
+    </div>
+}
+
+
 
 <EditForm Model="@registerModel" OnSubmit="@SignUp">
     Username:<br>
@@ -32,22 +46,11 @@
 </EditForm>
 
 @code {
-    private string? ErrorMessageLabel;
+    private string[]? errorArr = null;
     private RegisterModel registerModel = new();
 
     private async void SignUp()
     {
-        @* if (registerModel.Password != registerModel.PasswordRepeat)
-{
-Console.WriteLine("Passwords do not match");
-return;
-}
-if (!registerModel.Email.Contains("@"))
-{
-Console.WriteLine("Email must contain an @");
-return;
-}
-*@
         var content = Utility_Methods.stringify_object(new UserCreateDTO(
         registerModel.Username,
         registerModel.Email,
@@ -57,15 +60,33 @@ return;
         var resp = await http.PostAsync("minitwit/register", content);
         if (resp.IsSuccessStatusCode)
         {
+            uService.ActiveUser = await resp.Content.ReadFromJsonAsync<User>();
             navigation.NavigateTo("/");
         }
         else
         {
-            var error_message = await resp.Content.ReadAsStringAsync();
-            ErrorMessageLabel = $"Error ({resp.StatusCode}): {error_message}";
+            var errorString = await resp.Content.ReadAsStringAsync();
+            var errSplit = errorString.Split("\"errors\":");
+            if (errSplit.Length > 1)
+            {
+                var errors = errSplit[1];
+                errorArr = errors.Split("[");
+                if (errorArr.Length > 1)
+                {
+                    // we omit the first element due to weird split
+                    for (int i = 1; i < errorArr.Length; i++)
+                    {
+                        errorArr[i] = errorArr[i].TrimStart('"').Split("\"")[0];
+                    }
+                }
+            }
+            else
+            {
+                errorArr = new string[2];
+                errorArr[1] = errorString;
+            }
             StateHasChanged();
-            Console.WriteLine(resp.Content);
-            //throw new HttpRequestException($"Something went wrong. Please try again {ErrorMessageLabel}");
         }
     }
 }
+
