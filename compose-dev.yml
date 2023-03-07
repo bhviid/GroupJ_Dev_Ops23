@@ -1,3 +1,4 @@
+#docker-compose -f compose-dev.yml up
 version: '3.5'
 
 services:
@@ -10,6 +11,19 @@ services:
       connection_string: Host=postgresdev;Port=5432;Database=minitwit;Username=ole;Password=veryhardcode
     ports:
       - "5550:5550"
+    depends_on:
+      - postgresdev
+    volumes:
+      - .:/app
+  slimdev:
+    build: 
+      context: .
+      dockerfile: SlimTwit.Dev.Dockerfile
+    image: slimtwitdev
+    environment:
+      connection_string: Host=postgresdev;Port=5432;Database=minitwit;Username=ole;Password=veryhardcode
+    ports:
+      - "5551:5551"
     depends_on:
       - postgresdev
     volumes:
