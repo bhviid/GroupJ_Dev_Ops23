@@ -10,17 +10,25 @@
     <div class=twitbox>
     <h3>What's on your mind @uService.ActiveUser.Username?</h3>
     <WrappingSpinner>
-        <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
-            <p>
-                <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
-                
-                <input type=submit value="Share">
-            </p>
-        </EditForm>
-    </WrappingSpinner>
-</div>
-}
+        @if (_hasSent)
+            {
+                <div class="alert alert-success mb-0" role="alert">
+                    You succesfully shared a Twit! 🐧
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
+                    <p>
+                        <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
 
+                        <input type=submit value="Share">
+                    </p>
+                </EditForm>
+            }
+        </WrappingSpinner>
+    </div>
+}
 <TwitDisplayer TwitData="TwitData" />
 
 @code
@@ -30,6 +38,8 @@
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private MessageSubmitModel thisModel = new();
 
+    private bool _hasSent;
+
     private async void HandleSubmit()
     {
         if (User is null) return;
@@ -37,7 +47,6 @@
         var toPost = new MessageCreateDTO(User.Username, thisModel.WhatsOnYourMindString);
 
         ss.Show();
-        StateHasChanged();
 
         var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message", toPost);
 
@@ -46,6 +55,10 @@
             await GetTwitData();
             thisModel.Reset();
             ss.Hide();
+            _hasSent = true;
+            StateHasChanged();
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            _hasSent = false;
             StateHasChanged();
         }
     }
@@ -65,9 +78,11 @@
 
     private async Task GetTwitData()
     {
+        ss.Show();
         MsgDataPair[] res =
         await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>();
 
         TwitData = res!.ToList();
+        ss.Hide();
     }
 }
