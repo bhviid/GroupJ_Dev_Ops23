@@ -2,61 +2,71 @@
 @inject HttpClient http
 @inject NavigationManager navigation
 @inject UserService uService
+@inject SpinnerService ss
 
 <h2>Your feed 🐅</h2>
 @if (uService.ActiveUser is not null)
-{    
+{
     <div class=twitbox>
     <h3>What's on your mind @uService.ActiveUser.Username?</h3>
-    <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
-        <p>
-            <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
+    <WrappingSpinner>
+        <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
+            <p>
+                <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
                 
-            <input type=submit value="Share">
-        </p>
-    </EditForm>
-    </div>
+                <input type=submit value="Share">
+            </p>
+        </EditForm>
+    </WrappingSpinner>
+</div>
 }
 
 <TwitDisplayer TwitData="TwitData" />
 
-@code 
+@code
 {
-    public User? User {get; set;}
+    public User? User { get; set; }
 
     public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private MessageSubmitModel thisModel = new();
+
     private async void HandleSubmit()
     {
-        if(User is null) return;
+        if (User is null) return;
 
         var toPost = new MessageCreateDTO(User.Username, thisModel.WhatsOnYourMindString);
 
-        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message",toPost);
-        
-        if(resp.IsSuccessStatusCode)
+        ss.Show();
+        StateHasChanged();
+
+        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message", toPost);
+
+        if (resp.IsSuccessStatusCode)
         {
             await GetTwitData();
+            thisModel.Reset();
+            ss.Hide();
+            StateHasChanged();
         }
     }
     protected override async Task OnInitializedAsync()
     {
-        if(uService.ActiveUser is not null)
+        if (uService.ActiveUser is not null)
         {
             User = uService.ActiveUser;
             await GetTwitData();
         }
-        else 
+        else
         {
             navigation.NavigateTo("/public");
-            return; 
+            return;
         }
     }
 
     private async Task GetTwitData()
     {
         MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>(); 
+        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>();
 
         TwitData = res!.ToList();
     }
