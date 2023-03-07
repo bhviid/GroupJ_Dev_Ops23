@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniTwit.Shared;
 
+
 namespace MiniTwit.Server;
 
 [ApiController]
 [Route("[controller]/[action]")]
-public class SlimTwitController : ControllerBase
+public class SlimTwitController : ControllerBase, IDisposable
 {
+    private static readonly Counter receivedHttpsRequests = Metrics.CreateCounter("slimtwit_counter", "counts_http_requests");
     TwitContext _db;
     DateTime startTime1970 = new (1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
     public static int _latest;
@@ -22,6 +24,7 @@ public class SlimTwitController : ControllerBase
     public SlimTwitController(TwitContext db)
     {
         _db = db;
+        receivedHttpsRequests.Inc();
     }
     
     private bool IsRequestFromSimulator(HttpRequest req)
@@ -236,4 +239,9 @@ public class SlimTwitController : ControllerBase
     public record CreateFilteredMsg(string content);
     public record FollowOrUnFollowReq(string? follow, string? unfollow);
     public record LatestInfo(int latest);
+
+    public void Dispose()
+    {
+        _db.Dispose();
+    }
 }

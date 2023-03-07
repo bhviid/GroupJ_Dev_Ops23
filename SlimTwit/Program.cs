@@ -25,9 +25,13 @@ if (!context.Database.IsInMemory() && context.Database.GetPendingMigrations().An
 }
 
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseHttpMetrics();
 app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseCors();
+
+app.MapMetrics();
 app.Run();

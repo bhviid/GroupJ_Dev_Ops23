@@ -13,6 +13,7 @@ services:
     depends_on:
       - postgres
   simulation:
+    container_name: minitwitmoni
     build:
       context: .
       dockerfile: SlimTwit.Dockerfile
@@ -38,3 +39,18 @@ services:
       # - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     ports:
       - "5432:5432"
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+   
+    
+    
+  grafana:
+    image: grafana/grafana:4.5.2
+    ports:
+      - "3000:3000"
+  
