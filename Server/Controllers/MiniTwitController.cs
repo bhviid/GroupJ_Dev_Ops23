@@ -35,6 +35,12 @@ public class MiniTwitController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("count")]
+    public IActionResult GetAllMessagesCount()
+    {
+        return Ok(_db.Messages.Where(m => m.Flagged == 0).Count());
+    }
+
     [HttpGet]
     [Route("/minitwit/feed/{username}")]
     public IActionResult GetUserFeed(string username)
