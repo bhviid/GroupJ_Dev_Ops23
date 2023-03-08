@@ -21,6 +21,8 @@ public class MiniTwitController : ControllerBase
     [HttpGet]
     public IActionResult GetAllMessages()
     {
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
@@ -28,7 +30,8 @@ public class MiniTwitController : ControllerBase
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                                 GravatarUrlStringFromEmail(u.Email))
                        ))
-                      .Take(_perPage);
+                      .Skip(startIndex)
+                      .Take(pageSize);
         return Ok(result);
     }
 
@@ -252,4 +255,12 @@ public class MiniTwitController : ControllerBase
     }
 
     private static String GravatarUrlStringFromEmail(string email) => GravatarUrlStringFromEmail(email, 48);
+
+    private (int,int) GetStartIndexAndPageSizeOrDefaults(HttpRequest req)
+    {
+        int startIndex = int.TryParse(Request.Query["startIndex"], out startIndex) ? startIndex : 0;
+        int pageSize = int.TryParse(Request.Query["pageSize"], out pageSize) ? pageSize : _perPage;
+
+        return (startIndex,pageSize);
+    }
 }

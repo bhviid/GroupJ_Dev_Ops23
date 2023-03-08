@@ -78,11 +78,8 @@
 
     private async Task GetTwitData()
     {
-        ss.Show();
         MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>();
-
-        TwitData = res!.ToList();
-        ss.Hide();
+            await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>();
+        TwitData = res.ToList();
     }
 }

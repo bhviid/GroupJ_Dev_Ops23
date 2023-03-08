@@ -15,6 +15,12 @@
                 </p>
             </li>
         }
+        @if(Fetcher is not null)
+        {
+            <button @onclick="handleNext">
+                next
+            </button>
+        }
     }
     else
     {
@@ -25,5 +31,30 @@
 @code
 {
     [Parameter]
-    public List<MsgDataPair> TwitData { get; set; }
+    public List<MsgDataPair> TwitData { get; set; } = new();
+
+    [Parameter]
+    public Func<int,int,Task<List<MsgDataPair>>>? Fetcher {get; set;}
+
+    private int _pageSize = 5;
+    private int _startIndex = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(Fetcher is not null)
+        {
+            TwitData = await Fetcher(_startIndex, _pageSize);
+        }
+    }
+
+    protected async Task handleNext()
+    {
+        if(Fetcher is null) return;
+        _startIndex += _pageSize;
+        var data = await Fetcher(_startIndex, _pageSize);
+        //Naive approach
+        // TODO: Virtualization later 
+        TwitData.AddRange(data);
+        StateHasChanged();
+    }
 }
