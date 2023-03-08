@@ -29,13 +29,12 @@
         </WrappingSpinner>
     </div>
 }
-<TwitDisplayer TwitData="TwitData" />
+<TwitDisplayer Fetcher="@GetTwitData" />
 
 @code
 {
     public User? User { get; set; }
 
-    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private MessageSubmitModel thisModel = new();
 
     private bool _hasSent;
@@ -52,7 +51,6 @@
 
         if (resp.IsSuccessStatusCode)
         {
-            await GetTwitData();
             thisModel.Reset();
             ss.Hide();
             _hasSent = true;
@@ -62,12 +60,11 @@
             StateHasChanged();
         }
     }
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         if (uService.ActiveUser is not null)
         {
             User = uService.ActiveUser;
-            await GetTwitData();
         }
         else
         {
@@ -76,10 +73,11 @@
         }
     }
 
-    private async Task GetTwitData()
+    public async Task<List<MsgDataPair>> GetTwitData(int startIndex, int pageSize)
     {
-        MsgDataPair[] res =
-            await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}") ?? Array.Empty<MsgDataPair>();
-        TwitData = res.ToList();
+        if(User is null) return Array.Empty<MsgDataPair>().ToList();
+        var tmp = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}?startIndex={startIndex}&pageSize={pageSize}") 
+            ?? Array.Empty<MsgDataPair>();
+        return tmp.ToList();
     }
 }

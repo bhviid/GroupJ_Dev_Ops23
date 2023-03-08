@@ -4,7 +4,7 @@
         @foreach (var msgAuthor in TwitData)
         {
             <li>
-                <img src=@msgAuthor.Author.gravatar> 
+                <img src=@msgAuthor.Author.gravatar>
                 <p>
                     <strong>
                         <a href="@msgAuthor.Author.username">@msgAuthor.Author.username</a>
@@ -15,7 +15,7 @@
                 </p>
             </li>
         }
-        @if(Fetcher is not null)
+        @if (Fetcher is not null && _thereIsMore)
         {
             <button @onclick="handleNext">
                 next
@@ -30,31 +30,53 @@
 
 @code
 {
-    [Parameter]
     public List<MsgDataPair> TwitData { get; set; } = new();
 
     [Parameter]
-    public Func<int,int,Task<List<MsgDataPair>>>? Fetcher {get; set;}
+    public Func<int, int, Task<List<MsgDataPair>>>? Fetcher { get; set; }
+
+    [Parameter]
+    public bool ReFetch { get; set; }
+
+    private bool _thereIsMore = true;
 
     private int _pageSize = 5;
     private int _startIndex = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        if(Fetcher is not null)
+        if (Fetcher is not null)
         {
             TwitData = await Fetcher(_startIndex, _pageSize);
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && ReFetch && Fetcher is not null)
+        {
+            var newData = await Fetcher(_startIndex, _pageSize);
+            DataChange(newData);
+        }
+    }
+
     protected async Task handleNext()
     {
-        if(Fetcher is null) return;
+        if (Fetcher is null) return;
         _startIndex += _pageSize;
         var data = await Fetcher(_startIndex, _pageSize);
+        DataChange(data);
+    }
+
+    private void DataChange(List<MsgDataPair> newData)
+    {
         //Naive approach
-        // TODO: Virtualization later 
-        TwitData.AddRange(data);
+        // TODO: Virtualization later
+        TwitData.AddRange(newData);
+        if (newData.Count < _pageSize)
+        {
+            _thereIsMore = false;
+        }
         StateHasChanged();
     }
 }
