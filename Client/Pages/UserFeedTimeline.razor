@@ -75,9 +75,10 @@
 
     public async Task<List<MsgDataPair>> GetTwitData(int startIndex, int pageSize)
     {
-        if(User is null) return Array.Empty<MsgDataPair>().ToList();
-        var tmp = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}?startIndex={startIndex}&pageSize={pageSize}") 
-            ?? Array.Empty<MsgDataPair>();
+        if (User is null) return Array.Empty<MsgDataPair>().ToList();
+        var tmp = await
+        http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}?startIndex={startIndex}&pageSize={pageSize}")
+        ?? Array.Empty<MsgDataPair>();
         return tmp.ToList();
     }
 }
