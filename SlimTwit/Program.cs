@@ -5,8 +5,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("Starting Development database");
+    builder.Services.AddDbContext<TwitContext>(options => options.UseInMemoryDatabase(databaseName: "SlimTwit"));
 
+}
+else
+{
+    builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
+}
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
