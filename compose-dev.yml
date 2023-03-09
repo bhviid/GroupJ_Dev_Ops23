@@ -1,14 +1,20 @@
 #docker-compose -f compose-dev.yml up
+
+# !! IMPORTANT !!
+# This compose will most likely break your ide support, at least it does for vscode.
+# The easy fix is to just install the DevContainers extensions
+# then use the green >< icon the bottom left corner 
+# and start a vscode inside one of hte containers. :)
+
 version: '3.5'
 
 services:
   minidev:
-    build: 
-      context: .
-      dockerfile: MiniTwit.Dev.Dockerfile
-    image: minitwitdev
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    working_dir: /app
     environment:
       connection_string: Host=postgresdev;Port=5432;Database=minitwit;Username=ole;Password=veryhardcode
+    command: "dotnet watch run --project ./Server --urls http://0.0.0.0:5550"
     ports:
       - "5550:5550"
     depends_on:
@@ -16,12 +22,11 @@ services:
     volumes:
       - .:/app
   slimdev:
-    build: 
-      context: .
-      dockerfile: SlimTwit.Dev.Dockerfile
-    image: slimtwitdev
+    image: mcr.microsoft.com/dotnet/sdk:7.0
+    working_dir: /app
     environment:
       connection_string: Host=postgresdev;Port=5432;Database=minitwit;Username=ole;Password=veryhardcode
+    command: "dotnet watch run --project ./SlimTwit --urls http://0.0.0.0:5551"
     ports:
       - "5551:5551"
     depends_on:
