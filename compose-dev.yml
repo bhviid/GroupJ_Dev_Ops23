@@ -22,6 +22,7 @@ services:
     volumes:
       - .:/app
   slimdev:
+    container_name: slimdev
     image: mcr.microsoft.com/dotnet/sdk:7.0
     working_dir: /app
     environment:
@@ -42,3 +43,16 @@ services:
       - POSTGRES_DB=minitwit
     ports:
       - "5432:5432"
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.dev.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+  
+  grafana:
+    image: grafana/grafana:4.5.2
+    ports:
+      - "3000:3000"

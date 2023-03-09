@@ -8,7 +8,7 @@ namespace MiniTwit.Server;
 [Route("[controller]/[action]")]
 public class SlimTwitController : ControllerBase, IDisposable
 {
-    private static readonly Counter receivedHttpsRequests = Metrics.CreateCounter("slimtwit_counter", "counts_http_requests");
+    private static readonly Counter receivedHttpsRequests = Metrics.CreateCounter("slimtwit_counter_total", "counts_http_requests");
     TwitContext _db;
     DateTime startTime1970 = new (1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
     public static int _latest;
