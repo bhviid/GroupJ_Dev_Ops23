@@ -6,16 +6,10 @@
 
 <h2>Sign Up</h2>
 
-@if (errorArr is not null)
+@if (ErrorMessageLabel is not null)
 {
     <div class="error">
-    @if (errorArr!.Length > 1)
-        {
-            for (int i = 1; i < errorArr!.Length; i++)
-            {
-                <label>@errorArr[i]</label> <br />
-            }
-        }
+        <label>@ErrorMessageLabel</label>
     </div>
 }
 
@@ -35,18 +29,19 @@
     Password:<br>
 
     &emsp;&emsp;&emsp;
-    <InputText @bind-Value="@registerModel.Password" /> <br>
+    <InputText type="password" @bind-Value="@registerModel.Password" /> <br>
 
     Password (repeat):<br>
 
     &emsp;&emsp;&emsp;
-    <InputText @bind-Value="@registerModel.PasswordRepeat" /> <br>
+    <InputText type="password" @bind-Value="@registerModel.PasswordRepeat" /> <br>
 
     <button type="submit">Sign Up</button>
 </EditForm>
 
 @code {
-    private string[]? errorArr = null;
+    
+    private string? ErrorMessageLabel;
     private RegisterModel registerModel = new();
 
     private async void SignUp()
@@ -60,31 +55,12 @@
         var resp = await http.PostAsync("minitwit/register", content);
         if (resp.IsSuccessStatusCode)
         {
-            uService.ActiveUser = await resp.Content.ReadFromJsonAsync<User>();
+            uService.ActiveUser = await resp.Content.ReadFromJsonAsync<User>();;
             navigation.NavigateTo("/");
         }
         else
         {
-            var errorString = await resp.Content.ReadAsStringAsync();
-            var errSplit = errorString.Split("\"errors\":");
-            if (errSplit.Length > 1)
-            {
-                var errors = errSplit[1];
-                errorArr = errors.Split("[");
-                if (errorArr.Length > 1)
-                {
-                    // we omit the first element due to weird split
-                    for (int i = 1; i < errorArr.Length; i++)
-                    {
-                        errorArr[i] = errorArr[i].TrimStart('"').Split("\"")[0];
-                    }
-                }
-            }
-            else
-            {
-                errorArr = new string[2];
-                errorArr[1] = errorString;
-            }
+            ErrorMessageLabel = resp.ReasonPhrase;
             StateHasChanged();
         }
     }

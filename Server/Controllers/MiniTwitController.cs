@@ -140,6 +140,7 @@ public class MiniTwitController : ControllerBase
         await _db.SaveChangesAsync();
         return Ok($"Message posted: {message.Text}");
     }
+    
     private int? GetUserId(string username)
     {
         var s = _db.Users.Where(u => u.Username == username).FirstOrDefault();
@@ -186,13 +187,12 @@ public class MiniTwitController : ControllerBase
         return BadRequest("Nothing was changed");
     }
 
-
-    public User GetUser(string username)
+    public User? GetUser(string username)
     {
         var user = (from u in _db.Users
                     where u.Username == username
                     select u).FirstOrDefault();
-        return user!;
+        return user;
     }
 
     private bool UserExists(UserDTO user)
