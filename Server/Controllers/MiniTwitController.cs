@@ -29,16 +29,11 @@ public class MiniTwitController : ControllerBase
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                                 GravatarUrlStringFromEmail(u.Email))
-                       ))
-                      .Skip(startIndex)
-                      .Take(pageSize);
-        return Ok(result);
-    }
-
-    [HttpGet("count")]
-    public IActionResult GetAllMessagesCount()
-    {
-        return Ok(_db.Messages.Where(m => m.Flagged == 0).Count());
+                       ));
+        var total = result.Count();
+        var res = result.Skip(startIndex)
+                        .Take(pageSize);
+        return Ok(new MsgDataAndLength(total, res));
     }
 
     [HttpGet]
@@ -66,10 +61,12 @@ public class MiniTwitController : ControllerBase
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                               GravatarUrlStringFromEmail(u.Email))
-                      ))
-                    .Skip(startIndex)
-                    .Take(pageSize);
-        return Ok(result);
+                      ));
+        var total = result.Count();
+        var res = result.Skip(startIndex)
+                        .Take(pageSize);
+                    
+        return Ok( new MsgDataAndLength(total, res) );
     }
 
     [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
@@ -101,11 +98,11 @@ public class MiniTwitController : ControllerBase
         var author = new Author(user.UserId, user.Username, user.Email, GravatarUrlStringFromEmail(user.Email));
         var timeline = _db.Messages.Where(m => m.AuthorId == user.UserId)
                                     .OrderByDescending(m => m.PubDate)
-                                    .Select(m => new MsgDataPair(m,author))
-                                    .Skip(startIndex)
-                                    .Take(pageSize)
-                                    .ToArray();
-        return Ok(timeline);
+                                    .Select(m => new MsgDataPair(m,author));
+        var total = timeline.Count();
+        var t = timeline.Skip(startIndex)
+                        .Take(pageSize);
+        return Ok( new MsgDataAndLength(total, t) );
     }
 
     [HttpPost]
