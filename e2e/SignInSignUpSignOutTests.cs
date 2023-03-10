@@ -2,7 +2,7 @@ namespace e2e;
 
 [Parallelizable(ParallelScope.Self)]
 [TestFixture]
-public class SignInTest : PageTest
+public class SignInSignUpSignOutTests : PageTest
 {
     [SetUp]
     public void Setup()
