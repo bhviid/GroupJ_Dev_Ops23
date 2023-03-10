@@ -2,62 +2,83 @@
 @inject HttpClient http
 @inject NavigationManager navigation
 @inject UserService uService
+@inject SpinnerService ss
 
-<h2>public timeline</h2>
+<h2>Your feed 🐅</h2>
 @if (uService.ActiveUser is not null)
-{    
+{
     <div class=twitbox>
     <h3>What's on your mind @uService.ActiveUser.Username?</h3>
-    <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
-        <p>
-            <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
-                
-            <input type=submit value="Share">
-        </p>
-    </EditForm>
+    <WrappingSpinner>
+        @if (_hasSent)
+            {
+                <div class="alert alert-success mb-0" role="alert">
+                    You succesfully shared a Twit! 🐧
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@thisModel" OnSubmit="@HandleSubmit">
+                    <p>
+                        <input type=text name=text size=60 @bind-value="thisModel.WhatsOnYourMindString">
+
+                        <input type=submit value="Share">
+                    </p>
+                </EditForm>
+            }
+        </WrappingSpinner>
     </div>
 }
+<TwitDisplayer Fetcher="@GetTwitData" />
 
-<TwitDisplayer TwitData="TwitData" />
-
-@code 
+@code
 {
-    public User? User {get; set;}
+    public User? User { get; set; }
 
-    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
     private MessageSubmitModel thisModel = new();
+
+    private bool _hasSent;
+
     private async void HandleSubmit()
     {
-        if(User is null) return;
+        if (User is null) return;
 
         var toPost = new MessageCreateDTO(User.Username, thisModel.WhatsOnYourMindString);
 
-        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message",toPost);
-        
-        if(resp.IsSuccessStatusCode)
+        ss.Show();
+
+        var resp = await http.PostAsJsonAsync<MessageCreateDTO>($"/minitwit/add-message", toPost);
+
+        if (resp.IsSuccessStatusCode)
         {
-            await GetTwitData();
+            thisModel.Reset();
+            ss.Hide();
+            _hasSent = true;
+            StateHasChanged();
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            _hasSent = false;
+            StateHasChanged();
         }
     }
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if(uService.ActiveUser is not null)
+        if (uService.ActiveUser is not null)
         {
             User = uService.ActiveUser;
-            await GetTwitData();
         }
-        else 
+        else
         {
             navigation.NavigateTo("/public");
-            return; 
+            return;
         }
     }
 
-    private async Task GetTwitData()
+    public async Task<List<MsgDataPair>> GetTwitData(int startIndex, int pageSize)
     {
-        MsgDataPair[] res =
-        await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User!.UserId}") ?? Array.Empty<MsgDataPair>(); 
-
-        TwitData = res!.ToList();
+        if (User is null) return Array.Empty<MsgDataPair>().ToList();
+        var tmp = await
+        http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit/feed/{User.Username}?startIndex={startIndex}&pageSize={pageSize}")
+        ?? Array.Empty<MsgDataPair>();
+        return tmp.ToList();
     }
 }

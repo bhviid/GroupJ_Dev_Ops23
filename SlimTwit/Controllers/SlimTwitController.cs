@@ -90,7 +90,6 @@ public class SlimTwitController : ControllerBase
     [HttpGet]
     public IActionResult Msgs()
     {
-        Console.WriteLine("someone hit msgs");
         updateLatest(Request);
 
         if(!IsRequestFromSimulator(Request))

@@ -21,6 +21,8 @@ public class MiniTwitController : ControllerBase
     [HttpGet]
     public IActionResult GetAllMessages()
     {
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
@@ -28,14 +30,30 @@ public class MiniTwitController : ControllerBase
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                                 GravatarUrlStringFromEmail(u.Email))
                        ))
-                      .Take(_perPage);
+                      .Skip(startIndex)
+                      .Take(pageSize);
         return Ok(result);
     }
 
-    [HttpGet]
-    [Route("/minitwit/feed/{userId}")]
-    public IActionResult GetUserFeed(int userId)
+    [HttpGet("count")]
+    public IActionResult GetAllMessagesCount()
     {
+        return Ok(_db.Messages.Where(m => m.Flagged == 0).Count());
+    }
+
+    [HttpGet]
+    [Route("/minitwit/feed/{username}")]
+    public IActionResult GetUserFeed(string username)
+    {
+        //the user who's feed we would like to get it.
+        var userId = GetUserId(username);
+        Console.WriteLine($" {userId}, {username}");
+        if(userId is null)
+        {
+            return NotFound();
+        }
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+
         // Pretty sure, that ToList() forces the query to be executed in memory rather than on db
         //which greatly improves the speed.
         var flws = _db.Followings.Where(f => f.who_id == userId).Select(f => f.whom_id).ToList();
@@ -49,7 +67,8 @@ public class MiniTwitController : ControllerBase
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                               GravatarUrlStringFromEmail(u.Email))
                       ))
-                    .Take(_perPage);
+                    .Skip(startIndex)
+                    .Take(pageSize);
         return Ok(result);
     }
 
@@ -64,9 +83,8 @@ public class MiniTwitController : ControllerBase
             return StatusCode(StatusCodes.Status404NotFound);
         }
 
-        var result = from f in _db.Followings where f.who_id == whoId && f.whom_id == whomId select f;
-
-        return result is not null ? Ok(true) : Ok(false);
+        var res = _db.Followings.Where(f => f.who_id == whoId && f.whom_id == whomId).Select(f => f).FirstOrDefault();
+        return res is not null ? Ok(true) : Ok(false);
     }
 
     [HttpGet]
@@ -78,11 +96,14 @@ public class MiniTwitController : ControllerBase
         {
             return NotFound();
         }
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+        
         var author = new Author(user.UserId, user.Username, user.Email, GravatarUrlStringFromEmail(user.Email));
         var timeline = _db.Messages.Where(m => m.AuthorId == user.UserId)
                                     .OrderByDescending(m => m.PubDate)
                                     .Select(m => new MsgDataPair(m,author))
-                                    .Take(_perPage)
+                                    .Skip(startIndex)
+                                    .Take(pageSize)
                                     .ToArray();
         return Ok(timeline);
     }
@@ -93,9 +114,12 @@ public class MiniTwitController : ControllerBase
     public async Task<IActionResult> Follow(string username, User activeUser)
     {
         var whomId = GetUserId(username);
+        var activeUserId = GetUserId(activeUser.Username);
         if (whomId is null) return NotFound();
+        //Should never happen tbh, since we know a logged in user has a username in the frontend.
+        if(activeUserId is null) return BadRequest();
 
-        await _db.Followings.AddAsync(new Follows { who_id = activeUser.UserId, whom_id = (int)whomId });
+        await _db.Followings.AddAsync(new Follows { who_id = activeUserId.Value, whom_id = whomId.Value });
         await _db.SaveChangesAsync();
 
         return Ok($"You are now following {username}");
@@ -127,12 +151,18 @@ public class MiniTwitController : ControllerBase
     [HttpPost]
     [Route("add-message")]
     [Consumes("application/json")]
-    public async Task<IActionResult> AddMessage(MessageDTO message)
+    public async Task<IActionResult> AddMessage(MessageCreateDTO message)
     {
+        var authorId = GetUserId(message.Author);
+        if(authorId is null)
+        {
+            return BadRequest();
+        }
+
         await _db.Messages.AddAsync(new Message
         {
             MessageId = 0,
-            AuthorId = message.AuthorId,
+            AuthorId = authorId.Value,
             Text = message.Text,
             PubDate = DateTime.Now,
             Flagged = 0
@@ -236,4 +266,12 @@ public class MiniTwitController : ControllerBase
     }
 
     private static String GravatarUrlStringFromEmail(string email) => GravatarUrlStringFromEmail(email, 48);
+
+    private (int,int) GetStartIndexAndPageSizeOrDefaults(HttpRequest req)
+    {
+        int startIndex = int.TryParse(Request.Query["startIndex"], out startIndex) ? startIndex : 0;
+        int pageSize = int.TryParse(Request.Query["pageSize"], out pageSize) ? pageSize : _perPage;
+
+        return (startIndex,pageSize);
+    }
 }
