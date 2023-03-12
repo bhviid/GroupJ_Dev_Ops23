@@ -66,10 +66,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
-            source ~/.bashrc
             cd ~/docker/
-            ls
             docker-compose down
             docker-compose pull
             docker-compose up -d
@@ -81,10 +78,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
-            source ~/.bashrc
             cd ~/docker/
-            ls
             docker-compose down
             docker-compose pull
             docker-compose up -d
