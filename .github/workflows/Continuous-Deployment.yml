@@ -66,10 +66,10 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            cd ~/docker
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            ls
+            docker-compose -f ~/docker/ down
+            docker-compose -f ~/docker/ pull
+            docker-compose -f ~/docker/ up -d
 
       - name: Deploy to Production SimulatorMiniTwit
         uses: appleboy/ssh-action@master
@@ -78,7 +78,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            cd ~/docker
-            docker-compose down
-            docker-compose pull
-            docker-compose up -d
+            ls
+            docker-compose -f ~/docker/ down
+            docker-compose -f ~/docker/ pull
+            docker-compose -f ~/docker/ up -d
