@@ -30,7 +30,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: ./Dockerfiles/minitwit-compose/docker-compose.yml
-        target: ~/docker/docker-compose.yml
+        target: ~/docker/
 
     - name: Copy prometheus.yml to minitwit droplet
       uses: appleboy/scp-action@master
@@ -39,7 +39,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: prometheus.yml
-        target: ~/docker/prometheus.yml
+        target: ~/docker/
 
     - name: SSH into minitwit droplet, do a docker pull and run docker-compose
       uses: appleboy/ssh-action@master
@@ -75,7 +75,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: ./Dockerfiles/slimtwit-compose/docker-compose.yml
-        target: ~/docker/docker-compose.yml
+        target: ~/docker/
 
     - name: Copy prometheus.yml to sim droplet
       uses: appleboy/scp-action@master
@@ -84,7 +84,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: prometheus.yml
-        target: ~/docker/prometheus.yml
+        target: ~/docker/
 
     - name: SSH into sim droplet, do a docker pull and run docker-compose
       uses: appleboy/ssh-action@master
