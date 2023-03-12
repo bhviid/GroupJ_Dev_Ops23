@@ -3,11 +3,19 @@ using MiniTwit.Shared;
 using Microsoft.EntityFrameworkCore.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
+//builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("Starting Development database");
+    builder.Services.AddDbContext<TwitContext>(options => options.UseInMemoryDatabase(databaseName: "SlimTwit"));
 
+}
+else
+{
+    builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
+}
 var app = builder.Build();
 
 
@@ -28,7 +36,7 @@ if (!context.Database.IsInMemory() && context.Database.GetPendingMigrations().An
 {
     context.Database.Migrate();
 }
-    context.Database.EnsureCreated();
+context.Database.EnsureCreated();
 
 app.UseHttpsRedirection();
 

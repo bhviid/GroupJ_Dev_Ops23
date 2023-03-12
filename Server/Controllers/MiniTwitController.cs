@@ -21,15 +21,19 @@ public class MiniTwitController : ControllerBase
     [HttpGet]
     public IActionResult GetAllMessages()
     {
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                                 GravatarUrlStringFromEmail(u.Email))
-                       ))
-                      .Take(_perPage);
-        return Ok(result);
+                       ));
+        var total = result.Count();
+        var res = result.Skip(startIndex)
+                        .Take(pageSize);
+        return Ok(new MsgDataAndLength(total, res));
     }
 
     [HttpGet]
@@ -43,6 +47,7 @@ public class MiniTwitController : ControllerBase
         {
             return NotFound();
         }
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
 
         // Pretty sure, that ToList() forces the query to be executed in memory rather than on db
         //which greatly improves the speed.
@@ -56,9 +61,12 @@ public class MiniTwitController : ControllerBase
                       orderby m.PubDate descending
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                               GravatarUrlStringFromEmail(u.Email))
-                      ))
-                    .Take(_perPage);
-        return Ok(result);
+                      ));
+        var total = result.Count();
+        var res = result.Skip(startIndex)
+                        .Take(pageSize);
+                    
+        return Ok( new MsgDataAndLength(total, res) );
     }
 
     [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
@@ -85,13 +93,16 @@ public class MiniTwitController : ControllerBase
         {
             return NotFound();
         }
+        var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
+        
         var author = new Author(user.UserId, user.Username, user.Email, GravatarUrlStringFromEmail(user.Email));
         var timeline = _db.Messages.Where(m => m.AuthorId == user.UserId)
                                     .OrderByDescending(m => m.PubDate)
-                                    .Select(m => new MsgDataPair(m,author))
-                                    .Take(_perPage)
-                                    .ToArray();
-        return Ok(timeline);
+                                    .Select(m => new MsgDataPair(m,author));
+        var total = timeline.Count();
+        var t = timeline.Skip(startIndex)
+                        .Take(pageSize);
+        return Ok( new MsgDataAndLength(total, t) );
     }
 
     [HttpPost]
@@ -252,4 +263,12 @@ public class MiniTwitController : ControllerBase
     }
 
     private static String GravatarUrlStringFromEmail(string email) => GravatarUrlStringFromEmail(email, 48);
+
+    private (int,int) GetStartIndexAndPageSizeOrDefaults(HttpRequest req)
+    {
+        int startIndex = int.TryParse(Request.Query["startIndex"], out startIndex) ? startIndex : 0;
+        int pageSize = int.TryParse(Request.Query["pageSize"], out pageSize) ? pageSize : _perPage;
+
+        return (startIndex,pageSize);
+    }
 }
