@@ -39,8 +39,8 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: /prometheus.yml
-        target: ~/docker/
+        source: ./prometheus.yml
+        target: ~/docker/prometheus.yml
         overwrite: true
 
     - name: SSH into minitwit droplet, do a docker pull and run docker-compose
@@ -86,8 +86,8 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: /prometheus.yml
-        target: ~/docker/
+        source: ./prometheus.yml
+        target: ~/docker/prometheus.yml
         overwrite: true
 
     - name: SSH into sim droplet, do a docker pull and run docker-compose
