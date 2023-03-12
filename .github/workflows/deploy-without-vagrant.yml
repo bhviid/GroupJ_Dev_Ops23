@@ -29,7 +29,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: /Dockerfiles/minitwit-compose/docker-compose.yml
+        source: ./Dockerfiles/minitwit-compose/docker-compose.yml
         target: ~/docker/docker-compose.yml
 
     - name: Copy prometheus.yml to minitwit droplet
@@ -71,7 +71,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: /Dockerfiles/minitwit-compose/docker-compose.yml
+        source: ./Dockerfiles/slimtwit-compose/docker-compose.yml
         target: ~/docker/docker-compose.yml
 
     - name: Copy prometheus.yml to sim droplet
