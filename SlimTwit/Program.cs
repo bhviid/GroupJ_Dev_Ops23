@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-
+builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
