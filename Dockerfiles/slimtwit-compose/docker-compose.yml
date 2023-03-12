@@ -8,7 +8,7 @@ services:
     environment:
       connection_string: ${connection_string}
     ports:
-      - "5236:80"
+      - "5235:5236"
   prometheus:
     image: prom/prometheus
     container_name: prometheus

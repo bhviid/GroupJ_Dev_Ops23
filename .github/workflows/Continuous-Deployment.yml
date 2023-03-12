@@ -66,11 +66,12 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
+            echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
+            source ~/.bashrc
             cd ~/docker/
-            ls
-            docker-compose -f ~/docker/ down
-            docker-compose -f ~/docker/ pull
-            docker-compose -f ~/docker/ up -d
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
 
       - name: Deploy to Production SimulatorMiniTwit
         uses: appleboy/ssh-action@master
@@ -79,8 +80,9 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
+            echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
+            source ~/.bashrc
             cd ~/docker/
-            ls
             docker-compose -f ~/docker/ down
             docker-compose -f ~/docker/ pull
             docker-compose -f ~/docker/ up -d
