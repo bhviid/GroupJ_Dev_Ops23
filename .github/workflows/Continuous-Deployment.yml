@@ -69,6 +69,7 @@ jobs:
             echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
             source ~/.bashrc
             cd ~/docker/
+            ls
             docker-compose down
             docker-compose pull
             docker-compose up -d
@@ -83,6 +84,7 @@ jobs:
             echo "export connection_string=${POSTGRES_CONNECTION_STRING}" >> ~/.bashrc
             source ~/.bashrc
             cd ~/docker/
-            docker-compose -f ~/docker/ down
-            docker-compose -f ~/docker/ pull
-            docker-compose -f ~/docker/ up -d
+            ls
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
