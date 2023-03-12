@@ -66,6 +66,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
+            cd ~/docker/
             ls
             docker-compose -f ~/docker/ down
             docker-compose -f ~/docker/ pull
@@ -78,6 +79,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
+            cd ~/docker/
             ls
             docker-compose -f ~/docker/ down
             docker-compose -f ~/docker/ pull
