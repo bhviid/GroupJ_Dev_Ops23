@@ -68,9 +68,9 @@ jobs:
           script: |
             cd ~/docker/
             ls
-            docker-compose -f ~/docker/ down
-            docker-compose -f ~/docker/ pull
-            docker-compose -f ~/docker/ up -d
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
 
       - name: Deploy to Production SimulatorMiniTwit
         uses: appleboy/ssh-action@master
@@ -81,6 +81,6 @@ jobs:
           script: |
             cd ~/docker/
             ls
-            docker-compose -f ~/docker/ down
-            docker-compose -f ~/docker/ pull
-            docker-compose -f ~/docker/ up -d
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
