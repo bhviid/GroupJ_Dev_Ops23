@@ -44,9 +44,8 @@ public class SlimTwitController : ControllerBase, IDisposable
 
     private bool IsRequestFromSimulator(HttpRequest req)
     {
-        return true;
-        //  var reqAuth = req.Headers["Authorization"];
-        //  return reqAuth.ToString() == "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh";
+        var reqAuth = req.Headers["Authorization"];
+        return reqAuth.ToString() == "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh";
     }
 
     private void updateLatest(HttpRequest req)
