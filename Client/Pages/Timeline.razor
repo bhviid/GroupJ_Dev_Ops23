@@ -6,10 +6,10 @@
 
 @code
 {
-    public async Task<List<MsgDataPair>> GetTwitData(int startIndex, int pageSize)
+    public async Task<MsgDataAndLength> GetTwitData(int startIndex, int pageSize)
     {
-        var d  = await http.GetFromJsonAsync<MsgDataPair[]>($"/minitwit?startIndex={startIndex}&pageSize={pageSize}") 
-            ?? Array.Empty<MsgDataPair>();
-        return d.ToList();
+        var d  = await http.GetFromJsonAsync<MsgDataAndLength>($"/minitwit?startIndex={startIndex}&pageSize={pageSize}") 
+            ?? new(0, Array.Empty<MsgDataPair>());
+        return d;
     }
 }

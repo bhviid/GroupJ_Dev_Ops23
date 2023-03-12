@@ -5,6 +5,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 if (builder.Environment.IsDevelopment())
 {
     Console.WriteLine("Starting Development database");
@@ -15,6 +16,8 @@ else
 {
     builder.Services.AddDbContext<TwitContext>(options => options.UseNpgsql(Environment.GetEnvironmentVariable("connection_string")));
 }
+
+builder.Services.AddSingleton<PrometheusMetrics>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -33,9 +36,13 @@ if (!context.Database.IsInMemory() && context.Database.GetPendingMigrations().An
 }
 
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseHttpMetrics();
 app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseCors();
+
+app.MapMetrics();
 app.Run();

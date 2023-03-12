@@ -24,10 +24,8 @@
 
 @code
 {
-    public List<MsgDataPair> TwitData { get; set; } = new();
-
     [Parameter]
-    public Func<int, int, Task<List<MsgDataPair>>> Fetcher { get; set; }
+    public Func<int, int, Task<MsgDataAndLength>> Fetcher { get; set; }
 
     [Parameter]
     public bool ReFetch { get; set; }
@@ -37,47 +35,12 @@
     private int _pageSize = 12;
     private int _startIndex = 0;
 
-    protected override async Task OnInitializedAsync()
-    {
-        DataChange(await Fetcher(_startIndex, _pageSize));
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender && ReFetch)
-        {
-            var newData = await Fetcher(_startIndex, _pageSize);
-            DataChange(newData);
-        }
-    }
-
-    protected async Task handleNext()
-    {
-        _startIndex += _pageSize;
-        var data = await Fetcher(_startIndex, _pageSize);
-        DataChange(data);
-    }
-
-    private void DataChange(List<MsgDataPair> newData)
-    {
-        //Naive approach
-        // TODO: Virtualization later
-        TwitData.AddRange(newData);
-        if (newData.Count < _pageSize)
-        {
-            _thereIsMore = false;
-        }
-        StateHasChanged();
-    }
-
     private async ValueTask<ItemsProviderResult<MsgDataPair>> Provider(ItemsProviderRequest req)
     {
-        var totelNum = await http.GetFromJsonAsync<int>("/minitwit/count");
-
-        var numItems = Math.Min(req.Count, totelNum - req.StartIndex);
-        var data = await Fetcher(req.StartIndex, numItems);
+        //var numItems = Math.Min(req.Count, totelNum - req.StartIndex);
+        var (totalLength, data) = await Fetcher(req.StartIndex, req.Count);
 
 
-        return new ItemsProviderResult<MsgDataPair>(data, totelNum);
+        return new ItemsProviderResult<MsgDataPair>(data, totalLength);
     }
 }

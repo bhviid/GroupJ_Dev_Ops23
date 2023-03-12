@@ -58,14 +58,15 @@
         }
     }
 
-    public async Task<List<MsgDataPair>> GetTwitData(int startIndex, int pageSize)
+    public async Task<MsgDataAndLength> GetTwitData(int startIndex, int pageSize)
     {
         var httpRes = await http.GetAsync($"/minitwit/{username}?startIndex={startIndex}&pageSize={pageSize}");
         if(!httpRes.IsSuccessStatusCode)
         {
-            return new();
+            return new(0, Array.Empty<MsgDataPair>());
         }
-        return (await httpRes.Content.ReadFromJsonAsync<MsgDataPair[]>() ?? Array.Empty<MsgDataPair>()).ToList();
+        var dataPairs = await httpRes.Content.ReadFromJsonAsync<MsgDataAndLength>();
+        return dataPairs is null ? new(0, Array.Empty<MsgDataPair>()) : dataPairs;
     }
 
     private async Task HandleFollow()

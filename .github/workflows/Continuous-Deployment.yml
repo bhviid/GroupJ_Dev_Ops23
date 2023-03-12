@@ -54,9 +54,9 @@ jobs:
           context: .
           file: SlimTwit.Dockerfile
           push: true
-          tags: bhviid/SlimTwit:latest
-          cache-from: type=registry,ref=bhviid/SlimTwit:webbuildcache
-          cache-to: type=registry,ref=bhviid/SlimTwit:webbuildcache,mode=max
+          tags: bhviid/slimtwit:latest
+          cache-from: type=registry,ref=bhviid/slimtwit:webbuildcache
+          cache-to: type=registry,ref=bhviid/slimtwit:webbuildcache,mode=max
 
 
       - name: Deploy to Production MiniTwit
@@ -78,7 +78,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            docker stop SlimTwit || true
-            docker rm SlimTwit || true
-            docker pull bhviid/SlimTwit
-            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name SlimTwit -p 5235:80 bhviid/SlimTwit:latest
+            docker stop slimtwit || true
+            docker rm slimtwit || true
+            docker pull bhviid/slimtwit
+            docker run -d -e connection_string=${{ secrets.POSTGRES_CONNECTION_STRING }} --name slimtwit -p 5235:80 bhviid/slimtwit:latest
