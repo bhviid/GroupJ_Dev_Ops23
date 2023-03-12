@@ -38,15 +38,15 @@ Vagrant.configure("2") do |config|
 
     # Ports for the "new" compose file
     sudo ufw allow 5236
-    sudo ufw allow 9090
+    #sudo ufw allow 9090
     sudo ufw allow 3000
     
     sudo ufw enable
     sudo ufw reload
   SHELL
 
-  config.vm.provision "file", source: "compose-deploy-sim.yml", destination: "/docker/compose.yml"
-  config.vm.provision "file", source: "../../prometheus.yml", destination: "/docker/prometheus.yml"
+  config.vm.provision "file", source: "compose-deploy-sim.yml", destination: "~/docker/compose.yml"
+  config.vm.provision "file", source: "../../prometheus.yml", destination: "~/docker/prometheus.yml"
 
   ## THE BELOW: shouldn't be necessary anymore, just edit the image in the compose file
   # Pull Docker image from Docker Hub and run it

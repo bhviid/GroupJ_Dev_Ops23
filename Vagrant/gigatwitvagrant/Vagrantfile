@@ -35,6 +35,7 @@ Vagrant.configure("2") do |config|
     # Enable firewall and open port
     sudo ufw allow ssh
     sudo ufw allow 5235
+    sudo ufw allow 3000
     sudo ufw enable
     sudo ufw reload
   SHELL
