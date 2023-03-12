@@ -60,7 +60,8 @@ jobs:
           docker kill minitwit || true
           docker rm minitwit || true
           cd ~/docker/
-          docker-compose pull && docker-compose up -d
+          docker-compose pull
+          docker-compose up -d
     
     - name: make docker directory for sim droplet
       uses: appleboy/ssh-action@master
@@ -110,4 +111,5 @@ jobs:
           docker kill minitwit || true
           docker rm minitwit || true
           cd ~/docker/
-          docker-compose pull && docker-compose up -d
+          docker-compose pull
+          docker-compose up -d
