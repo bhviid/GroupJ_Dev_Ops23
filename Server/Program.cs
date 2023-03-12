@@ -3,7 +3,7 @@ using MiniTwit.Shared;
 using Microsoft.EntityFrameworkCore.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
-//builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
+builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 if (builder.Environment.IsDevelopment())

@@ -8,13 +8,13 @@ services:
     environment:
       connection_string: ${connection_string}
     ports:
-      - "5236:80"
+      - "5235:5236"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     restart: unless-stopped
     volumes:
-      - /prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
   grafana:
