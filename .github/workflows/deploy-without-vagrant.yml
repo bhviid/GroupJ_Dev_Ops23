@@ -21,7 +21,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         script: |
-          mkdir -p ~/docker/
+          mkdir -p ~/docker
 
     - name: Copy docker-compose.yml to minitwit droplet
       uses: appleboy/scp-action@master
@@ -30,7 +30,8 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: ./Dockerfiles/minitwit-compose/docker-compose.yml
-        target: ~/docker/
+        target: ~/docker
+        overwrite: true
 
     - name: Copy prometheus.yml to minitwit droplet
       uses: appleboy/scp-action@master
@@ -39,7 +40,8 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: prometheus.yml
-        target: ~/docker/
+        target: ~/docker
+        overwrite: true
 
     - name: SSH into minitwit droplet, do a docker pull and run docker-compose
       uses: appleboy/ssh-action@master
@@ -55,7 +57,7 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker kill minitwit || true
           docker rm minitwit || true
-          cd ~/docker/
+          cd ~/docker
           docker-compose pull
           docker-compose up -d
     
@@ -66,7 +68,7 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         script: |
-          mkdir -p ~/docker/
+          mkdir -p ~/docker
 
     - name: Copy docker-compose.yml to sim droplet
       uses: appleboy/scp-action@master
@@ -75,7 +77,8 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: ./Dockerfiles/slimtwit-compose/docker-compose.yml
-        target: ~/docker/
+        target: ~/docker
+        overwrite: true
 
     - name: Copy prometheus.yml to sim droplet
       uses: appleboy/scp-action@master
@@ -84,7 +87,8 @@ jobs:
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
         source: prometheus.yml
-        target: ~/docker/
+        target: ~/docker
+        overwrite: true
 
     - name: SSH into sim droplet, do a docker pull and run docker-compose
       uses: appleboy/ssh-action@master
@@ -101,6 +105,6 @@ jobs:
           docker-compose --version
           docker kill minitwit || true
           docker rm minitwit || true
-          cd ~/docker/
+          cd ~/docker
           docker-compose pull
           docker-compose up -d
