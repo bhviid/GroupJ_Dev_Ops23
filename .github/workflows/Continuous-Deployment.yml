@@ -9,7 +9,7 @@ on:
       - master
       
   # allow manual triggers for now too
-  # workflow_dispatch:
+  workflow_dispatch:
   #  manual: true
 
 env:
