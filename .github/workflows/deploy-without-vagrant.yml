@@ -39,7 +39,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: prometheus.yml
+        source: /prometheus.yml
         target: ~/docker/
         overwrite: true
 
@@ -86,7 +86,7 @@ jobs:
         host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
         username: root
         key: ${{ secrets.SSH_PRIVAT_KEY }}
-        source: prometheus.yml
+        source: /prometheus.yml
         target: ~/docker/
         overwrite: true
 
