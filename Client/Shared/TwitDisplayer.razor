@@ -30,11 +30,6 @@
     [Parameter]
     public bool ReFetch { get; set; }
 
-    private bool _thereIsMore = true;
-
-    private int _pageSize = 12;
-    private int _startIndex = 0;
-
     private async ValueTask<ItemsProviderResult<MsgDataPair>> Provider(ItemsProviderRequest req)
     {
         //var numItems = Math.Min(req.Count, totelNum - req.StartIndex);

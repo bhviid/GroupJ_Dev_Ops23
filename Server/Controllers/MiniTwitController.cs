@@ -72,8 +72,8 @@ public class MiniTwitController : ControllerBase
     [HttpGet("is-follower/{whoUsername}/{whomUsername}")]
     public async Task<IActionResult> IsFollower(string whoUsername, string whomUsername)
     {
-        int? whoId = GetUserId(whoUsername);
-        int? whomId = GetUserId(whomUsername);
+        var whoId = GetUserId(whoUsername);
+        var whomId = GetUserId(whomUsername);
 
         if(whoId is null || whomId is null)
         {
@@ -170,18 +170,8 @@ public class MiniTwitController : ControllerBase
     
     private int? GetUserId(string username)
     {
-        var s = _db.Users.Where(u => u.Username == username).FirstOrDefault();
+        var s = _db.Users.FirstOrDefault(u => u.Username == username);
         return s is not null ? s.UserId : null;
-    }
-
-    [HttpGet]
-    [Route("md5/{email}/{size}")]
-    public string Md5HashEmailForGravatarString(string email, int size = 48)
-    {
-        //Must be here since MD5 is disabled in blazor wasm...
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
-        return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed).ToLower()}?d=identicon&s={size}";
     }
 
     [HttpPost]
@@ -230,7 +220,7 @@ public class MiniTwitController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login(UserLoginDTO loginData)
     {
-        var user = _db.Users.Where(u => u.Username == loginData.Username).FirstOrDefault();
+        var user = _db.Users.FirstOrDefault(u => u.Username == loginData.Username);
 
         if(user is null)
         {
@@ -248,7 +238,7 @@ public class MiniTwitController : ControllerBase
         return Ok(new UserDTO(user.Username, user.Email, user.Password));
     }
 
-    private string Md5HashPassword(string rawPass) 
+    private static string Md5HashPassword(string rawPass) 
     {
         using var md5 = System.Security.Cryptography.MD5.Create();
         var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(rawPass));
@@ -258,7 +248,7 @@ public class MiniTwitController : ControllerBase
     private static String GravatarUrlStringFromEmail(string email, int size)
     {
         using var md5 = System.Security.Cryptography.MD5.Create();
-        byte[] md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
+        var md5ed = md5.ComputeHash(System.Text.Encoding.ASCII.GetBytes(email.Trim().ToLower()));
         return $"http://www.gravatar.com/avatar/{Convert.ToHexString(md5ed).ToLower()}?d=identicon&s={size}";
     }
 
