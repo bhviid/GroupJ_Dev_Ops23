@@ -1,18 +1,15 @@
 @page "/public"
 @inject HttpClient http
 
-<h2>public timeline</h2>
-<TwitDisplayer TwitData="TwitData"/>
+<h2>public timeline - it is actually good</h2>
+<TwitDisplayer Fetcher="@GetTwitData"/>
 
-@code 
+@code
 {
-    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
-    private int gravatarSize = 48;
-
-    protected override async Task OnInitializedAsync()
+    public async Task<MsgDataAndLength> GetTwitData(int startIndex, int pageSize)
     {
-        //public tweets - not logged in or user logged in on "/public"
-        var res = await http.GetFromJsonAsync<MsgDataPair[]>("/minitwit");   
-        TwitData = res!.ToList();
+        var d  = await http.GetFromJsonAsync<MsgDataAndLength>($"/minitwit?startIndex={startIndex}&pageSize={pageSize}") 
+            ?? new(0, Array.Empty<MsgDataPair>());
+        return d;
     }
 }

@@ -1,0 +1,110 @@
+name: Manual deploy to server
+
+on:
+  workflow_dispatch:
+env:
+  connection_string: ${{ secrets.POSTGRES_CONNECTION_STRING }}
+
+jobs:
+  deploy:
+    name: Manual deploy without vagrant
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: make docker directory
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        script: |
+          mkdir -p ~/docker
+
+    - name: Copy docker-compose.yml to minitwit droplet
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        source: ./Dockerfiles/minitwit-compose/docker-compose.yml
+        target: ~/docker/
+        overwrite: true
+
+    - name: Copy prometheus.yml to minitwit droplet
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        source: ./prometheus.yml
+        target: ~/docker/prometheus.yml
+        overwrite: true
+
+    - name: SSH into minitwit droplet, do a docker pull and run docker-compose
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        script: |
+          sudo ufw allow 3000
+          sudo ufw allow 5235
+          sudo ufw reload
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker kill minitwit || true
+          docker rm minitwit || true
+          cd ~/docker
+          docker-compose pull
+          docker-compose up -d
+    
+    - name: make docker directory for sim droplet
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        script: |
+          mkdir -p ~/docker
+
+    - name: Copy docker-compose.yml to sim droplet
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        source: ./Dockerfiles/slimtwit-compose/docker-compose.yml
+        target: ~/docker/
+        overwrite: true
+
+    - name: Copy prometheus.yml to sim droplet
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        source: ./prometheus.yml
+        target: ~/docker/prometheus.yml
+        overwrite: true
+
+    - name: SSH into sim droplet, do a docker pull and run docker-compose
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
+        username: root
+        key: ${{ secrets.SSH_PRIVAT_KEY }}
+        script: |
+          sudo ufw allow 3000
+          sudo ufw allow 5236
+          sudo ufw reload
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+          docker kill minitwit || true
+          docker rm minitwit || true
+          cd ~/docker
+          docker-compose pull
+          docker-compose up -d
