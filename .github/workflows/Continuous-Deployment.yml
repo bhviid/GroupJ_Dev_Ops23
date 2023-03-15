@@ -67,6 +67,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
             cd ~/docker/
+            echo "connection_string=/"$connection_string/"" > .env
             docker-compose down
             docker-compose pull
             docker-compose up -d
@@ -79,6 +80,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
             cd ~/docker/
+            echo "connection_string=/"$connection_string/"" > .env
             docker-compose down
             docker-compose pull
             docker-compose up -d
