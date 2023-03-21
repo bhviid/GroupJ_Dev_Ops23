@@ -2,7 +2,6 @@
 @inject HttpClient http
 @inject NavigationManager navigation
 @inject UserService uService
-@using Newtonsoft.Json
 <PageTitle>Sign Up</PageTitle>
 
 <h2>Sign Up</h2>
@@ -63,8 +62,7 @@
         {
             ErrorMessageLabel = resp.ReasonPhrase;
             StateHasChanged();
-            Console.WriteLine(resp.Content);
-            //throw new HttpRequestException($"Something went wrong. Please try again {ErrorMessageLabel}");
         }
     }
 }
+
