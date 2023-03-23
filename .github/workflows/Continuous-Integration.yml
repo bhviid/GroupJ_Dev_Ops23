@@ -45,4 +45,10 @@ jobs:
           binary-path: './Server'
 
       - name: 📚 Infer# analysis results
-        run: echo "${{ steps.runinfersharp.outputs.results }}"
+        run: echo "${{ steps.runinfersharp.outputs.results }}"; echo "why are you empty"
+        
+      - name: Upload Infer# report as an artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: report
+          path: infer-out/report.txt
