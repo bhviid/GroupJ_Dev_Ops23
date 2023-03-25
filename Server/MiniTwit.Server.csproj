@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-     <InternalsVisibleTo Include="..\server.test\server.test.csproj" />
+     <InternalsVisibleTo Include="..\Server.test\Server.test.csproj" />
   </ItemGroup>
 
 

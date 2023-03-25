@@ -5,20 +5,22 @@ on:
   push:
     branches:
       - development
+    paths-ignore:
+      - "*.md"
+      - "./.github"
 
   pull_request:
     branches:
       - development
-      - main
-      - master
     paths-ignore:
       - "*.md"
+      - ".github/"
 
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build & Test
+  unit-test:
+    name: 🧪 Unit Test
     runs-on: ubuntu-latest
 
     steps:
