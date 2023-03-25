@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniTwit.Shared;
+using Serilog;
 
 namespace MiniTwit.Server.Controllers;
 
@@ -9,12 +10,10 @@ public class MiniTwitController : ControllerBase
 {
     private readonly TwitContext _db;
     private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-    private readonly ILogger<MiniTwitController> _logger;
     private readonly int _perPage = 30;
 
-    public MiniTwitController(ILogger<MiniTwitController> logger, TwitContext db)
+    public MiniTwitController(TwitContext db)
     {
-        _logger = logger;
         _db = db;
     }
 
@@ -112,13 +111,21 @@ public class MiniTwitController : ControllerBase
     {
         var whomId = GetUserId(username);
         var activeUserId = GetUserId(activeUser.Username);
-        if (whomId is null) return NotFound();
+        if (whomId is null)
+        {
+            Log.Information("{@User} tried to follow {Non-existing-Username} but the user is not registeret", activeUser, username);
+            return NotFound();
+        }
         //Should never happen tbh, since we know a logged in user has a username in the frontend.
-        if(activeUserId is null) return BadRequest();
-
+        if (activeUserId is null)
+        {
+            Log.Warning("Active user is null when trying to follow another user");
+            return BadRequest();
+        }
+        
         await _db.Followings.AddAsync(new Follows { who_id = activeUserId.Value, whom_id = whomId.Value });
         await _db.SaveChangesAsync();
-
+        Log.Information("{@User} is now following {Username}", activeUser, username);
         return Ok($"You are now following {username}");
     }
 
@@ -209,6 +216,7 @@ public class MiniTwitController : ControllerBase
 
         if (createdUser is not null)
         {
+            Log.Information("{@User} has joined",createdUser) ;
             return Created($"user/{createdUser.UserId}", createdUser);
         }
         return BadRequest("Nothing was changed");
@@ -243,8 +251,10 @@ public class MiniTwitController : ControllerBase
         //check if the hash from db matches the hash from post/request.
         if (user.Password != PwHash)
         {
+            Log.Information("{@User} tried to login with the wrong password", user);
             return StatusCode(StatusCodes.Status401Unauthorized, "Invalid password");
         }
+        Log.Information("{@User} has logged in", user);
         return Ok(new UserDTO(user.Username, user.Email, user.Password));
     }
 
