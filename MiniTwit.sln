@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniTwit.Client", "Client\M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniTwit.Shared", "Shared\MiniTwit.Shared.csproj", "{9921EEB6-7A77-4D22-9904-3A7C662F4D27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.test", "Server.test\Server.test.csproj", "{7436C7CF-9090-4DD9-AE1E-24C601E5018D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Test", "Server.Test\Server.Test.csproj", "{7436C7CF-9090-4DD9-AE1E-24C601E5018D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlimTwit", "SlimTwit\SlimTwit.csproj", "{487B60AB-7991-495A-97AD-C228A604BCAF}"
 EndProject
