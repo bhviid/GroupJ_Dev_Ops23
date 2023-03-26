@@ -7,7 +7,7 @@ using MiniTwit.Shared;
 /* 
 
     MiniTwit Tests
-    ~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~
 
     Tests the MiniTwit application.
 
