@@ -1,6 +1,7 @@
-namespace server.test;
+namespace Server.Test;
 
 using System.Net;
+using System.Net.Http.Json;
 using MiniTwit.Shared;
 
 /* 
@@ -67,71 +68,63 @@ public class server_testing : IClassFixture<WebTestFixture>
             Assert.Equal("Invalid username", await GetContent(response));
         }
      */
-    /*     [Fact]
-        public async Task MessageRecordingTest()
-        {
-            // Check if adding messages works
-            await RegisterAndLogin("foo", "default");
-            await AddMessage("test message 1");
-            await AddMessage("<test message 2>");
-            var response = await _client.GetAsync("/");
-            var content = await GetContent(response);
-            // in can find substrings, maybe
-            Assert.Contains("test message 1", content);
-            Assert.Contains("&lt;test message 2&gt;", content);
-        }
-     */
-    /* [Fact]
+    [Fact(Skip = "Not implemented yet")]
+    public async Task MessageRecordingTest()
+    {
+        // Check if adding messages works
+        await RegisterAndLogin("foo", "default");
+        var testo = await AddMessage("test message 1");
+        var testo2 = await AddMessage("<test message 2>");
+        var response = await _client.GetFromJsonAsync<MsgDataPair>("/");
+        var content = Utility_Methods.stringify_object(response);
+        // in can find substrings, maybe
+        /* Assert.Contains("test message 1", content.ToString());
+        Assert.Contains("&lt;test message 2&gt;", content.ToString()); */
+    }
+
+    [Fact(Skip = "Not implemented yet")]
     public async Task TimelinesTest()
     {
         // Make sure that timelines work
-        await RegisterAndLogin("foo", "default");
+        /* await RegisterAndLogin("foo", "default");
         await AddMessage("the message by foo");
         await Logout();
         await RegisterAndLogin("bar", "default");
         await AddMessage("the message by bar");
         var response = await _client.GetAsync("/public");
-        var content = await GetContent(response);
         Assert.Contains("the message by foo", content);
         Assert.Contains("the message by bar", content);
 
         // bar's timeline should just show bar's message
         response = await _client.GetAsync("/");
-        content = await GetContent(response);
         Assert.DoesNotContain("the message by foo", content);
         Assert.Contains("the message by bar", content);
 
         // now let's follow foo
         response = await _client.GetAsync("/foo/follow");
-        content = await GetContent(response);
         //previous test , follow_redirects=True
         Assert.Contains("You are now following &quot;foo&quot;", content);
 
         // we should now see foo's message
         response = await _client.GetAsync("/");
-        content = await GetContent(response);
         Assert.Contains("the message by foo", content);
         Assert.Contains("the message by bar", content);
 
         // but on the user's page we only want the user's message
         response = await _client.GetAsync("/bar");
-        content = await GetContent(response);
         Assert.DoesNotContain("the message by foo", content);
         Assert.Contains("the message by bar", content);
         response = await _client.GetAsync("/foo");
-        content = await GetContent(response);
         Assert.Contains("the message by foo", content);
         Assert.DoesNotContain("the message by bar", content);
 
         // now unfollow and check if that worked
         response = await _client.GetAsync("/foo/unfollow");
-        content = await GetContent(response);
         Assert.Contains("You are no longer following &quot;foo&quot;", content);
         response = await _client.GetAsync("/");
-        content = await GetContent(response);
         Assert.DoesNotContain("the message by foo", content);
-        Assert.Contains("the message by bar", content);
-    } */
+        Assert.Contains("the message by bar", content); */
+    }
 
     // helper functions
     private async Task<HttpResponseMessage> Register(string username, string password, string password2 = "", string? email = null)
@@ -161,15 +154,9 @@ public class server_testing : IClassFixture<WebTestFixture>
 
     private async Task<HttpResponseMessage> AddMessage(string text)
     {
-        var content = Utility_Methods.stringify_object(new Message
-        {
-            AuthorId = 0,
-            Text = text,
-            PubDate = DateTime.Now,
-            Flagged = 0
-        });
+        var content = Utility_Methods.stringify_object(new MiniTwit.Shared.MessageCreateDTO("0", text));
         // Console.WriteLine(json);
-        var response = await _client.PostAsync("minitwit/add_message", content);
+        var response = await _client.PostAsync("minitwit/add-message", content);
         return response;
     }
 }

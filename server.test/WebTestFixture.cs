@@ -1,4 +1,4 @@
-namespace server.test;
+namespace Server.Test;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
