@@ -94,7 +94,7 @@ public class SlimTwitController : ControllerBase, IDisposable
         
         if (err is not null)
         {
-            Log.Error("Failed to signup {@RegisterInfo}, Error: {Error}", userInfo, err);
+            Log.Error("Failed to signup {@RegisterInfo}, Error: {@RegisterError}", userInfo, err);
             return BadRequest(err);
         }
 
@@ -173,6 +173,9 @@ public class SlimTwitController : ControllerBase, IDisposable
                     where u.UserId == userId && m.Flagged == 0
                     orderby m.PubDate descending
                     select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
+        
+        Log.Information("Retrieved {AmountOfTweets} messages for user {@Username}'s feed}", numberOfMsgs, username);
+
         return Ok(FilterMsgs(msgs));
     }
 
@@ -180,16 +183,22 @@ public class SlimTwitController : ControllerBase, IDisposable
     public async Task<IActionResult> MsgsCreateAs(string username, CreateFilteredMsg toCreate)
     {
         updateLatest(Request);
-        if (!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
+        if (!IsRequestFromSimulator(Request))
+        {
+            return RequestNotFromSimulatorResponse;
+        }
 
         var userId = GetUserId(username);
-        if (userId is null) return NotFound();
-
+        if (userId is null)
+        {
+            Log.Information("{@ActiveUser} not found when trying to tweet", username);
+            return NotFound();
+        }
         await _db.Messages.AddAsync(new Message { AuthorId = userId.Value, Flagged = 0, MessageId = 0, PubDate = DateTime.Now, Text = toCreate.content });
         await _db.SaveChangesAsync();
 
         _addMessageRequests.Inc();
-        Log.Information("{User} created the following tweet: {Tweet}", username, toCreate);
+        Log.Information("{@ActiveUser} created the following tweet: {@Tweet}", username, toCreate);
         return NoContent();
     }
 
@@ -239,13 +248,18 @@ public class SlimTwitController : ControllerBase, IDisposable
             var followsUsername = fReq.follow;
             var followsUserId = GetUserId(followsUsername);
             if (followsUserId is null) return NotFound();
+            Log.Information("{@ActiveUser} is now following {@Username}", username, followsUsername);
+
 
             await _db.Followings.AddAsync(new Follows { who_id = userId.Value, whom_id = followsUserId.Value });
         }
         else //then it is an unfollow request
         {
-            var followsUserId = GetUserId(fReq.unfollow!);
+            var followsUsername = fReq.unfollow!;
+            var followsUserId = GetUserId(followsUsername);
             if (followsUserId is null) return NotFound();
+            Log.Information("{@ActiveUser} is now unfollowing {@Username}", username, followsUsername);
+
             await _db.Followings.AddAsync(new Follows { who_id = userId.Value, whom_id = followsUserId.Value });
         }
 

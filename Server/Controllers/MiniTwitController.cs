@@ -32,6 +32,9 @@ public class MiniTwitController : ControllerBase
         var total = result.Count();
         var res = result.Skip(startIndex)
                         .Take(pageSize);
+       
+		Log.Information("Retrieved {Count} messages for all users with pagination startIndex {StartIndex} and pageSize {PageSize}", total, startIndex, pageSize);
+
         return Ok(new MsgDataAndLength(total, res));
     }
 
@@ -64,7 +67,9 @@ public class MiniTwitController : ControllerBase
         var total = result.Count();
         var res = result.Skip(startIndex)
                         .Take(pageSize);
-                    
+        
+		Log.Information("Retrieved {AmountOfTweets} messages for user {@Username}'s feed with startIndex {StartIndex} and pageSize {PageSize}", total, username, startIndex, pageSize);
+             
         return Ok( new MsgDataAndLength(total, res) );
     }
 
@@ -76,10 +81,12 @@ public class MiniTwitController : ControllerBase
 
         if(whoId is null || whomId is null)
         {
+			Log.Information("User not found when checking follower status for {@WhoUsername} and {@WhomUsername}", whoUsername, whomUsername);
             return StatusCode(StatusCodes.Status404NotFound);
         }
 
         var res = _db.Followings.Where(f => f.who_id == whoId && f.whom_id == whomId).Select(f => f).FirstOrDefault();
+		
         return res is not null ? Ok(true) : Ok(false);
     }
 
@@ -90,6 +97,7 @@ public class MiniTwitController : ControllerBase
         var user = (from u in _db.Users where u.Username == username select u).FirstOrDefault();
         if (user is null)
         {
+            Log.Information("User not found when getting timeline for {Username}", username);
             return NotFound();
         }
         var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
@@ -125,7 +133,7 @@ public class MiniTwitController : ControllerBase
         
         await _db.Followings.AddAsync(new Follows { who_id = activeUserId.Value, whom_id = whomId.Value });
         await _db.SaveChangesAsync();
-        Log.Information("{@User} is now following {Username}", activeUser, username);
+        Log.Information("{@User} is now following {@Username}", activeUser, username);
         return Ok($"You are now following {username}");
     }
 
@@ -135,19 +143,26 @@ public class MiniTwitController : ControllerBase
     public IActionResult UnFollow(string username, User activeUser)
     {
         var whomId = GetUserId(username);
-        if (whomId is null) return NotFound();
+        if (whomId is null) 
+		{
+			Log.Information("User {Username} not found", username);
+			return NotFound();
+		}
         var activeUserId = GetUserId(activeUser.Username) ?? 0;
-
+		
         var toRemove = (from f in _db.Followings
                         where f.who_id == activeUserId && f.whom_id == whomId
                         select f).FirstOrDefault();
         if (toRemove is null)
         {
+			Log.Information("{@ActiveUser} is not following {@Username}", activeUser, username);
             return NotFound("You are not following this user");
         }
 
         _db.Followings.Remove(toRemove);
         _db.SaveChanges();
+		
+		Log.Information("{@ActiveUser} has successfully unfollowed {@Username}", activeUser, username);
 
         return Ok($"You are no longer following {username}");
     }
@@ -160,6 +175,7 @@ public class MiniTwitController : ControllerBase
         var authorId = GetUserId(message.Author);
         if(authorId is null)
         {
+			Log.Information("{@ActiveUser} not found", message.Author);
             return BadRequest();
         }
 
@@ -172,6 +188,9 @@ public class MiniTwitController : ControllerBase
             Flagged = 0
         });
         await _db.SaveChangesAsync();
+    	
+		Log.Information("@{ActiveUser} Tweetet: {@Text}",authorId, message.Text);
+
         return Ok($"Message posted: {message.Text}");
     }
     
@@ -196,13 +215,34 @@ public class MiniTwitController : ControllerBase
     [Consumes("application/json")]
     public async Task<IActionResult> Register(UserCreateDTO user)
     {
+        
         var PwHash = Md5HashPassword(user.Password);
 
-        if (user.Username == "") return BadRequest("Invalid Username");
-        if (user.Password == "") return BadRequest("Password cannot be empty!");
-        if (user.Password != user.PasswordRepeat) return BadRequest("Passwords don't match");
-        if (!Utility_Methods.IsValidEmail(user.Email)) return BadRequest("Invalid E-mail");
-        if (UserExists(new UserDTO(user.Username, user.Email, user.Password))) return Conflict("User already exists");
+        if (user.Username == "")
+        {
+            Log.Information("Invalid Username");
+            return BadRequest("Invalid Username");
+        }
+        if (user.Password == "")
+        {
+            Log.Information("Password cannot be empty!");
+            return BadRequest("Password cannot be empty!");
+        }
+        if (user.Password != user.PasswordRepeat)
+        {
+            Log.Information("Passwords don't match");
+            return BadRequest("Passwords don't match");
+        }
+        if (!Utility_Methods.IsValidEmail(user.Email))
+        {
+            Log.Information("Invalid E-mail");
+            return BadRequest("Invalid E-mail");
+        }
+        if (UserExists(new UserDTO(user.Username, user.Email, user.Password)))
+        {
+            Log.Information("User already exists");
+            return Conflict("User already exists");
+        }
 
         await _db.Users.AddAsync(new User
         {
@@ -219,6 +259,8 @@ public class MiniTwitController : ControllerBase
             Log.Information("{@User} has joined",createdUser) ;
             return Created($"user/{createdUser.UserId}", createdUser);
         }
+        Log.Information("Nothing was changed");
+
         return BadRequest("Nothing was changed");
     }
 
@@ -242,6 +284,7 @@ public class MiniTwitController : ControllerBase
 
         if(user is null)
         {
+            Log.Information("Invalid username {@Username} attempted to log in", loginData.Username);
             return StatusCode(StatusCodes.Status401Unauthorized, "Invalid username");
         }
 
