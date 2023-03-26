@@ -41,7 +41,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Dotnet Test
-        run: dotnet test ./Server.Tests/Server.Tests.csproj
+        run: dotnet test Server.Test/Server.Test.csproj
   
   e2e-test:
     name: 🔚 Run E2E Test
@@ -62,7 +62,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Dotnet Test
-        run: dotnet test ./Server.Tests/Server.Tests.csproj
+        run: dotnet test Server.Test/Server.Test.csproj
 
   build-MiniTwit:
     name: 🐳 Build and push Docker images
