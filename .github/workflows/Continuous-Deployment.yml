@@ -67,10 +67,12 @@ jobs:
   build-MiniTwit:
     name: 🐳 Build and push Docker images
     if: |
-      github.ref == 'refs/heads/main' || 
-      github.ref == 'refs/heads/dev' && 
+      github.ref == 'refs/heads/main' && 
       github.event_name == 'push' &&
-      contains(github.event.head_changes, 'Server/')
+      (
+      contains(github.event.head_changes, 'Server/') ||
+      contains(github.event.head_changes, 'Client/')
+      )
     needs: [unit-test, e2e-test]
     runs-on: ubuntu-latest
     steps:
@@ -153,7 +155,7 @@ jobs:
       github.ref == 'refs/heads/main' && 
       github.event_name == 'push'
     steps:
-      - name: 🚀 Deploy Minitwit Simulation to Production 
+      - name: 🚀 Deploy Simulation to Production 
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
