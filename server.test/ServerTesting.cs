@@ -24,6 +24,7 @@ public class server_testing : IClassFixture<WebTestFixture>
     {
         _factory = factory;
         _client = factory.CreateClient();
+        
     }
 
     [Fact]
