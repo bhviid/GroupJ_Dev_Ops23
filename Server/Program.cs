@@ -11,7 +11,6 @@ Log.Logger = new LoggerConfiguration()
 try
     {
 
-
         var builder = WebApplication.CreateBuilder(args);
         builder.Configuration.AddEnvironmentVariables(prefix: "connection_string");
         builder.Services.AddControllersWithViews();
