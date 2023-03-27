@@ -1,24 +1,24 @@
 version: '3.5'
 
 services:
-  minitwitter:
-    image: bhviid/devops
-    container_name: minitwit
+  slimtwitter:
+    image: bhviid/slimtwit
+    container_name: slimtwit
     restart: unless-stopped
     environment:
       connection_string: ${connection_string}
     ports:
-      - "5235:80"
+      - "5235:5236"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     restart: unless-stopped
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./simulator-prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
   grafana:
-    image: grafana/grafana:4.5.2
+    image: grafana/grafana
     container_name: grafana
     restart: unless-stopped
     ports:

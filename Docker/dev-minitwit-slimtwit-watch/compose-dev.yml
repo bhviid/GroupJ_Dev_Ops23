@@ -21,7 +21,7 @@ services:
       - postgresdev
       - slimdev
     volumes:
-      - .:/app
+      - ./../..:/app
   slimdev:
     container_name: slimdev
     image: mcr.microsoft.com/dotnet/sdk:7.0
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgresdev
     volumes:
-      - .:/app
+      - ./../..:/app
   postgresdev:
     container_name: postgresdev
     image: postgres:latest
