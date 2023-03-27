@@ -5,35 +5,33 @@ on:
   push:
     branches:
       - development
+    paths-ignore:
+      - "*.md"
+      - "./.github"
 
   pull_request:
     branches:
       - development
-      - main
-      - master
     paths-ignore:
       - "*.md"
+      - ".github/"
 
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build & Test
+  unit-test:
+    name: 🧪 Unit Test
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
-
       - name: Restore
         run: dotnet restore
-
       - name: Build
         run: dotnet build --configuration Release
-
       - name: Test
-        run: dotnet test
+        run: dotnet test Server.Test/Server.Test.csproj

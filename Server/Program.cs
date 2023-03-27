@@ -1,13 +1,14 @@
-    using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MiniTwit.Shared;
 using Microsoft.EntityFrameworkCore.InMemory;
     using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .CreateBootstrapLogger();
+    .CreateLogger();
 
-    try
+
+try
     {
 
         var builder = WebApplication.CreateBuilder(args);

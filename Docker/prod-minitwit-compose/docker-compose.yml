@@ -1,26 +1,26 @@
-### deploy compose
 version: '3.5'
 
 services:
-  simulation:
-    container_name: simulation
-    # insert actual image from dev
-    image: tjobi/some_minitwit:t
+  minitwitter:
+    image: bhviid/devops
+    container_name: minitwit
+    restart: unless-stopped
     environment:
-      connection_string: "${connection_string}"
+      connection_string: ${connection_string}
     ports:
-      - "5236:5236"
-  
+      - "5235:80"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
+    restart: unless-stopped
     volumes:
-      - /docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./minitwit-prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"  
-
+      - "9090:9090"
   grafana:
-    image: grafana/grafana:4.5.2
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
     ports:
       - "3000:3000"
   netdata:
