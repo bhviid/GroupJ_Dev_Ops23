@@ -74,11 +74,6 @@ jobs:
       Server: ${{ steps.filter.outputs.Server }}
       Simulation: ${{ steps.filter.outputs.Simulation }}
     steps:
-    - uses: actions/checkout@v3
-      with:
-        # This may save additional git fetch roundtrip if
-        # merge-base is found within latest 20 commits
-        fetch-depth: 20
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
       id: filter
