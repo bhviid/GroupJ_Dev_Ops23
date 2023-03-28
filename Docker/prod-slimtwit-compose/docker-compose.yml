@@ -20,6 +20,8 @@ services:
   grafana:
     image: grafana/grafana
     container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -46,3 +48,4 @@ volumes:
   netdataconfig:
   netdatalib:
   netdatacache:
+  grafana-data:
