@@ -9,9 +9,29 @@ public class E2E_test : PageTest
     string _baseUrl = "http://127.0.0.1:5235/public";
 
     [Test]
-    public async Task LogInTest()
+    public async Task SignUpandLogInTest()
     {
-        await CreateUser("asdasda", "asdasda");
+        await Page.GotoAsync($"{_baseUrl}");
+
+        await Page.GetByRole(AriaRole.Link, new() { Name = "sign up" }).ClickAsync();
+
+        await Page.GetByRole(AriaRole.Textbox).First.ClickAsync();
+
+        await Page.GetByRole(AriaRole.Textbox).First.FillAsync("adsadsa");
+
+        await Page.GetByRole(AriaRole.Textbox).First.PressAsync("Tab");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).FillAsync("adsadsa@adsadsa.dk");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).PressAsync("Tab");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(2).FillAsync("adsadsa");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(2).PressAsync("Tab");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(3).FillAsync("adsadsa");
+
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign Up" }).ClickAsync();
 
         await Page.GotoAsync($"{_baseUrl}");
 
@@ -19,15 +39,15 @@ public class E2E_test : PageTest
 
         await Page.Locator("input[name=\"username\"]").ClickAsync();
 
-        await Page.Locator("input[name=\"username\"]").FillAsync("asdasda");
+        await Page.Locator("input[name=\"username\"]").FillAsync("adsadsa");
 
-        await Page.Locator("input[name=\"username\"]").PressAsync("Tab");
+        await Page.Locator("input[name=\"password\"]").ClickAsync();
 
-        await Page.Locator("input[name=\"password\"]").FillAsync("asdasda");
+        await Page.Locator("input[name=\"password\"]").FillAsync("adsadsa");
 
-        await Page.Locator("input[name=\"password\"]").PressAsync("Enter");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign In" }).ClickAsync();
 
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "sign out [asdasda]" })).ToBeEnabledAsync();
+        await Expect(Page.GetByText("What's on your mind adsadsa?")).ToBeEnabledAsync();
     }
     [Test]
     public async Task MakeATweetTest()
