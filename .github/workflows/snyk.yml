@@ -1,0 +1,19 @@
+---
+name: Continuous-Integration
+
+on:
+  push:
+
+  workflow_dispatch:
+
+jobs:
+  dotnet-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: 😳 Run Snyk to check for vulnerabilities
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        with: 
+          args: --severity-threshold=medium --file=MiniTwit.sln
