@@ -44,8 +44,7 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        image: bhviid/devops
-        args: --severity-threshold=medium
+        args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
         
   slimtwit-image-security:
     runs-on: ubuntu-latest
@@ -55,8 +54,7 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        image: bhviid/slimtwit
-        args: --severity-threshold=medium
+        args: --severity-threshold=medium --file=./Docker/Dockerfiles/SlimTwit.Dockerfile
 
   dotnet-security:
     runs-on: ubuntu-latest
