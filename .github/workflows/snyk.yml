@@ -19,8 +19,7 @@ jobs:
         run: dotnet restore
       - name: 😳 Run Snyk to check for vulnerabilities
         uses: snyk/actions/dotnet@master
-        run: snyk ignore --file-pathServer.Test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with: 
-          args: --severity-threshold=medium --file=MiniTwit.sln
+          args: --severity-threshold=medium --file=MiniTwit.sln $(snyk ignore --file-pathServer.Test)
