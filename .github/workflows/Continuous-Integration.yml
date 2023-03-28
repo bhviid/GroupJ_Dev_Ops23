@@ -35,3 +35,12 @@ jobs:
         run: dotnet build --configuration Release
       - name: Test
         run: dotnet test Server.Test/Server.Test.csproj
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run Snyk to check Docker image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        image: bhviid/devops
