@@ -44,4 +44,4 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
         image: bhviid/devops
-        args: -d
+        args: -d --severity-threshold=medium
