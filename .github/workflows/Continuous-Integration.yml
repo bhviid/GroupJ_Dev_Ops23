@@ -43,5 +43,5 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        image: Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
-        args: --file=MiniTwitPostgres.Dockerfile -d
+        image: bhviid/devops
+        args: -d
