@@ -22,5 +22,4 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with: 
-          args: --severity-threshold=medium --file=MiniTwit.sln --path=Server.Test
-          EXLCUDE: Server.Test
+          args: --severity-threshold=medium --file=MiniTwit.sln --path=Server.Test/ --reason="it dumb" 
