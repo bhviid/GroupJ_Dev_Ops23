@@ -16,6 +16,10 @@ Here we shall do awesome DevOps'ing, Software maintenance and evolution.
     - [Week 6](#week-6)
     - [Week 7](#week-7)
     - [Week 8](#week-8)
+    - [Week 9](#week-9)
+    - [Week 10](#week-10)
+    - [Week 11](#week-11)
+    - [Week 12](#week-12)
 
 ## Missing Implementations
 
@@ -74,25 +78,53 @@ Cleaning and polishing of your ITU-MiniTwit, introduction of DB abstraction laye
 
 - [x] Add Monitoring to Your Systems.
 - [x] Software Maintenance II: Check the user interface of another group.
-  - [] Do you see a public timeline?
-  - [] Does the public timeline show messages that the application received from the simulator?
-  - [] Can you create a new user?
-  - [] Can you login as a new user?
-  - [] Can you write a message?
-  - [] After publishing a message, does it appear on your private timeline?
-  - [] Can you follow another user?
+  - [x] Do you see a public timeline?
+  - [x] Does the public timeline show messages that the application received from the simulator?
+  - [x] Can you create a new user?
+  - [x] Can you login as a new user?
+  - [x] Can you write a message?
+  - [x] After publishing a message, does it appear on your private timeline?
+  - [x] Can you follow another user?
 
 ### Week 7
 
-- [] Add CI test to Chain
+- [x] Add CI test to Chain
   - [x] Unit test
   - [x] Integration test
-  - [ ] End2End test
-- [ ] 3 static tools
+  - [x] End2End test
+- [x] 3 static tools
 - [x] add
   - [x] SonarQube
   - [x] Code Climate
 
 ### Week 8
+- [x] Add Logging
+  - [x] Elastic Search
+  - [x] Kibana
+- [ ] Catch a Bug By Looking at the Logs
+  - [ ] Introduce A Bug
+  - [ ] Catch A Bug
+  - [ ] Write Postmortem at '/docs/Postmortems.md'
+ - [ ] MOVED! Write an SLA for Your Own API
+ 
+### Week 9
+
+- [ ] Perform a Security Assessment
+  - [ ] A. Risk Identification
+  - [ ] B. Risk Analysis
+  - [ ] C. Pen-Test Your System
+- [ ] White Hat Attack The Next Team ( _Niceness_  -[checks]-> Group k _Radiator_)
+
+### Week 10
+
+TBA
+
+
+### Week 11
+
+TBA
+
+
+### Week 12
 
 TBA
