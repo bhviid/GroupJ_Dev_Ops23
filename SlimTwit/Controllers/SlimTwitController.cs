@@ -260,7 +260,10 @@ public class SlimTwitController : ControllerBase, IDisposable
             if (followsUserId is null) return NotFound();
             Log.Information("{@ActiveUser} is now unfollowing {@Username}", username, followsUsername);
 
-            await _db.Followings.AddAsync(new Follows { who_id = userId.Value, whom_id = followsUserId.Value });
+            var dbEntry = await _db.Followings.FirstOrDefaultAsync(f => f.who_id == userId && f.whom_id == followsUserId);
+            if(dbEntry is null) return NotFound();
+
+            _db.Followings.Remove(dbEntry);
         }
 
         await _db.SaveChangesAsync();
