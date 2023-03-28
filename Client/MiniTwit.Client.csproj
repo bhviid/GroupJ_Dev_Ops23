@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\MiniTwit.Shared.csproj" />
+    <ProjectReference Include="..\Shared\MiniTwit.Shared.csproj" Version="0.1.0"/>
   </ItemGroup>
 
 </Project>
