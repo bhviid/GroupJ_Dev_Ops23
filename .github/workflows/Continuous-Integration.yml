@@ -35,13 +35,23 @@ jobs:
         run: dotnet build --configuration Release
       - name: Test
         run: dotnet test Server.Test/Server.Test.csproj
-  security:
+  snyk-security-minitwit:
     runs-on: ubuntu-latest
     steps:
-    - name: Run Snyk to check Docker image for vulnerabilities
+    - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
       uses: snyk/actions/docker@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
         image: bhviid/devops
-        args: -d --severity-threshold=medium
+        args: --severity-threshold=medium
+  snyk-security-slimtwit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 😳 Run Snyk to check Slimtwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        image: bhviid/slimtwit
+        args: --severity-threshold=medium
