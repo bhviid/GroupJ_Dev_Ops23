@@ -23,7 +23,7 @@ jobs:
       run: pwsh ./e2e/bin/Debug/net7.0/playwright.ps1 install --with-deps
 
     - name: Start the server
-      run: dotnet run --project ./Server/MiniTwit.Server.csproj
+      run: dotnet run --project ./Server/MiniTwit.Server.csproj &
 
     - name: Run your tests
       run: dotnet test ./e2e/e2e.csproj
