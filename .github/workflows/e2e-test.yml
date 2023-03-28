@@ -25,5 +25,8 @@ jobs:
     - name: Start the server
       run: dotnet run --project ./Server/MiniTwit.Server.csproj &
 
+    - name: Sleep for 30 seconds
+      run: sleep 30s
+
     - name: Run your tests
       run: dotnet test ./e2e/e2e.csproj
