@@ -209,7 +209,7 @@ public class SlimTwitController : ControllerBase, IDisposable
     {
         updateLatest(Request);
 
-        //if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
+        if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
 
         var userId = GetUserId(username);
         if (userId is null) return NotFound();
@@ -236,7 +236,7 @@ public class SlimTwitController : ControllerBase, IDisposable
     {
         updateLatest(Request);
 
-        //if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
+        if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
 
         var userId = GetUserId(username);
         if (userId is null) return NotFound();
