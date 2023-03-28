@@ -67,4 +67,4 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with: 
-          args: --severity-threshold=medium --file=Server/MiniTwit.Server.csproj
+          args: --severity-threshold=medium --file=MiniTwit.sln
