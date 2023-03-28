@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+      - name: Restore
+        run: dotnet restore
       - name: 😳 Run Snyk to check for vulnerabilities
         uses: snyk/actions/dotnet@master
         env:
