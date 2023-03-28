@@ -11,7 +11,7 @@ public class E2E_test : PageTest
     [Test]
     public async Task LogInTest()
     {
-        await CreateUser();
+        await CreateUser("asdasda", "asdasda");
 
         await Page.GotoAsync($"{_baseUrl}");
 
@@ -19,20 +19,20 @@ public class E2E_test : PageTest
 
         await Page.Locator("input[name=\"username\"]").ClickAsync();
 
-        await Page.Locator("input[name=\"username\"]").FillAsync("asdasd");
+        await Page.Locator("input[name=\"username\"]").FillAsync("asdasda");
 
         await Page.Locator("input[name=\"username\"]").PressAsync("Tab");
 
-        await Page.Locator("input[name=\"password\"]").FillAsync("asdasd");
+        await Page.Locator("input[name=\"password\"]").FillAsync("asdasda");
 
         await Page.Locator("input[name=\"password\"]").PressAsync("Enter");
 
-        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "sign out [asdasd]" })).ToBeEnabledAsync();
+        await Expect(Page.GetByRole(AriaRole.Link, new() { Name = "sign out [asdasda]" })).ToBeEnabledAsync();
     }
     [Test]
     public async Task MakeATweetTest()
     {
-        await CreateUser();
+        await CreateUser("asdasd", "asdasd");
 
         await Page.GotoAsync($"{_baseUrl}");
 
@@ -54,7 +54,7 @@ public class E2E_test : PageTest
 
         await Expect(Page.GetByText("You succesfully shared a Twit! 🐧")).ToBeEnabledAsync();
     }
-    public async Task CreateUser()
+    public async Task CreateUser(string username, string password)
     {
 
         await Page.GotoAsync($"{_baseUrl}");
@@ -63,25 +63,27 @@ public class E2E_test : PageTest
 
         await Page.GetByRole(AriaRole.Textbox).First.ClickAsync();
 
-        await Page.GetByRole(AriaRole.Textbox).First.FillAsync("asdasd");
+        await Page.GetByRole(AriaRole.Textbox).First.FillAsync(username);
 
         await Page.GetByRole(AriaRole.Textbox).Nth(1).ClickAsync();
 
-        await Page.GetByRole(AriaRole.Textbox).Nth(1).FillAsync("asdasd@asdasd.dk");
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).FillAsync($"{username}@email.com");
 
         await Page.GetByRole(AriaRole.Textbox).Nth(1).PressAsync("Tab");
 
-        await Page.GetByRole(AriaRole.Textbox).Nth(2).FillAsync("asdasd");
+        await Page.GetByRole(AriaRole.Textbox).Nth(2).FillAsync(password);
 
         await Page.GetByRole(AriaRole.Textbox).Nth(2).PressAsync("Tab");
 
-        await Page.GetByRole(AriaRole.Textbox).Nth(3).FillAsync("asdasd");
+        await Page.GetByRole(AriaRole.Textbox).Nth(3).FillAsync(password);
 
         await Page.Locator("html").ClickAsync();
 
         await Page.GetByText("Username: E-Mail: Password: Password (repeat): Sign Up").ClickAsync();
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Sign Up" }).ClickAsync();
+
+
 
 
     }
