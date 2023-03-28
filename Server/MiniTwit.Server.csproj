@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Client\MiniTwit.Client.csproj" Version="0.1.0"/>
-    <ProjectReference Include="..\Shared\MiniTwit.Shared.csproj" Version="0.1.0"/>
+    <ProjectReference Include="..\Client\MiniTwit.Client.csproj" />
+    <ProjectReference Include="..\Shared\MiniTwit.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
