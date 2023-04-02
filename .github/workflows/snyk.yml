@@ -7,15 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  🐋 docker-linting:
+  docker-linting:
+    name: 🐋 Docker Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: 🦈 Linting for mintwit image
+      - name: 🦈 Lint for mintwit image
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
-      - name: 🐆 Linting for slimtwit image
+      - name: 🐆 Lint for slimtwit image
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./Docker/Dockerfiles/SlimTwit.Dockerfile
