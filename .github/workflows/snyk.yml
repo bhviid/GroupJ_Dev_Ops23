@@ -11,22 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - uses: snyk/actions/setup@master
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '7.0.x'
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
       - name: Restore
         run: dotnet restore
+      - name: Run snyk ignore to ignore tests
+        run: snyk ignore --file-path=Server.Test/
         # DEN GIDER SIMPELTHEN IKKE IGNORERR TEST PROJEKTET OG JEG SKRIGER 
       - name: 😳 Run Snyk to check for vulnerabilities
-        uses: snyk/actions/dotnet@master
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with: 
-          args: --severity-threshold=medium --file=MiniTwit.sln --sarif-file-output=snyk.sarif
-      - name: ⬆️ Upload result to GitHub Code Scanning
-        uses: actions/upload-artifact@v2
-        with:
-          name: "dotnet-snyk-result"
-          path: snyk.sarif
+        run: snyk test --severity-threshold=medium --file=MiniTwit.sln
+      #- name: ⬆️ Upload result to GitHub Code Scanning
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: "dotnet-snyk-result"
+      #    path: snyk.sarif
