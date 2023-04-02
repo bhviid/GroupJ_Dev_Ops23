@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  minitwit-image-security-&-lint:
+  minitwit-image-lint-and-security:
     runs-on: ubuntu-latest
     steps:
     - name: 🦈 Run docker linter
