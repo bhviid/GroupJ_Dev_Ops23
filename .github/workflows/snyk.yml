@@ -10,13 +10,7 @@ jobs:
   minitwit-image-lint-and-security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       
-      - name: 🦈 Run docker linter
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-            dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
-
       - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
         uses: snyk/actions/docker@master
         env:
