@@ -20,10 +20,10 @@ jobs:
           dotnet-version: 7.0.x
       - name: Restore
         run: dotnet restore
-      - name: Run snyk ignore to ignore tests
+      #- name: Run snyk ignore to ignore tests
       #  env:
        #   SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        run: snyk ignore --file-path=Server.Test/ 
+       # run: snyk ignore --file-path=Server.Test/ 
         # DEN GIDER SIMPELTHEN IKKE IGNORERR TEST PROJEKTET OG JEG SKRIGER 
       - name: 😳 Run Snyk to check for vulnerabilities
         continue-on-error: true # To make sure that SARIF upload gets called
