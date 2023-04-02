@@ -7,12 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  minitwit-image-security:
+  🐋 docker-linting:
     runs-on: ubuntu-latest
     steps:
-    - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
-      uses: snyk/actions/docker@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-      with:
-        args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+      - uses: actions/checkout@v3
+
+      - name: 🦈 Linting for mintwit image
+        uses: hadolint/hadolint-action@v3.1.0
+          with:
+            dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+      - name: 🐆 Linting for slimtwit image
+        uses: hadolint/hadolint-action@v3.1.0
+          with:
+            dockerfile: ./Docker/Dockerfiles/SlimTwit.Dockerfile
