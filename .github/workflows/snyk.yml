@@ -7,13 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  minitwit-image-lint-and-security:
+  minitwit-image-security:
     runs-on: ubuntu-latest
     steps:
-      
-      - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with:
-          args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+    - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
