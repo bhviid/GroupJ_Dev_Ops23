@@ -2,9 +2,8 @@
 name: Continuous-Integration
 
 on:
-  push:
-
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   docker-linting:
@@ -20,10 +19,31 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./Docker/Dockerfiles/SlimTwit.Dockerfile
+  minitwit-image-security:
+    name: 🥼 MiniTwit Image security - snyk
+    runs-on: ubuntu-latest
+    steps:
+    - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+        
+  slimtwit-image-security:
+    name: 🥼 SlimTwit Image security - snyk
+    runs-on: ubuntu-latest
+    steps:
+    - name: 😳 Run Snyk to check Slimtwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        args: --severity-threshold=medium --file=./Docker/Dockerfiles/SlimTwit.Dockerfile
   ## From the learn.microsoft 
   #https://learn.microsoft.com/en-us/dotnet/architecture/devops-for-aspnet-developers/actions-codeql
   analyze:
-    name: CodeQL Analyze
+    name: 🔬 CodeQL Analyze
     runs-on: ubuntu-latest
 
     strategy:
