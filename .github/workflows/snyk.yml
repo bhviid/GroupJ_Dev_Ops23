@@ -10,9 +10,10 @@ jobs:
   minitwit-image-lint-and-security:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      
       - name: 🦈 Run docker linter
-        - uses: actions/checkout@v3
-        - uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.1.0
         with:
             dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
 
