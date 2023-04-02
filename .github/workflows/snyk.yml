@@ -9,6 +9,8 @@ on:
 jobs:
   dotnet-security:
     runs-on: ubuntu-latest
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
     steps:
       - uses: actions/checkout@master
       - uses: snyk/actions/setup@master
@@ -21,12 +23,10 @@ jobs:
       - name: Run snyk ignore to ignore tests
       #  env:
        #   SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        run: snyk ignore --file-path=Server.Test/ SNYK_TOKEN=${{ secrets.SNYK_API_TOKEN }}
+        run: snyk ignore --file-path=Server.Test/ 
         # DEN GIDER SIMPELTHEN IKKE IGNORERR TEST PROJEKTET OG JEG SKRIGER 
       - name: 😳 Run Snyk to check for vulnerabilities
         continue-on-error: true # To make sure that SARIF upload gets called
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         run: snyk test --severity-threshold=medium --file=MiniTwit.sln
       #- name: ⬆️ Upload result to GitHub Code Scanning
       #  uses: actions/upload-artifact@v2
