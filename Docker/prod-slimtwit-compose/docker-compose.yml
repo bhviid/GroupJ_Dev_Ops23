@@ -9,6 +9,10 @@ services:
       connection_string: ${connection_string}
     ports:
       - "5235:5236"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
   prometheus:
     image: prom/prometheus
     container_name: prometheus
