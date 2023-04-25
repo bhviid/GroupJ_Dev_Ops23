@@ -176,6 +176,6 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY_SWARM }}
           script: |
-            cd ~/docker/
+            cd ~/
             docker service update -d --update-order start-first slimi_slimtwitter
 
