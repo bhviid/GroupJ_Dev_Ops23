@@ -174,9 +174,8 @@ jobs:
         with:
           host: ${{ secrets.DROPLET_IP_ADDRESS_SIM }}
           username: root
-          key: ${{ secrets.SSH_PRIVAT_KEY }}
+          key: ${{ secrets.SSH_PRIVAT_KEY_SWARM }}
           script: |
             cd ~/docker/
-            docker-compose pull
-            docker-compose up -d
+            docker service update -d --update-order start-first slimi_slimtwitter
 
