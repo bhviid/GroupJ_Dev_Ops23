@@ -13,4 +13,9 @@ public class User
 
     [Column("email")]
     public string Email { get; set; }
+
+    public ICollection<Message> Messages { get; set; } = new List<Message>();
+
+    public ICollection<Follows> Follows { get; set; } = new List<Follows>();
+    public ICollection<Follows> FollowedBy { get; set; } = new List<Follows>();
 }

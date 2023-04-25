@@ -6,6 +6,8 @@ public class TwitContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Follows> Followings { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Latest> Latests { get; set; }
+    
       public TwitContext(DbContextOptions<TwitContext> options)
         : base(options) { }
 
@@ -24,9 +26,13 @@ public class TwitContext : DbContext
 
         modelBuilder.Entity<User>().HasKey(u => u.UserId);
         modelBuilder.Entity<User>().ToTable("user");
+        modelBuilder.Entity<User>().HasMany(e => e.Messages).WithOne(e => e.User);
+        modelBuilder.Entity<User>().HasMany(e => e.FollowedBy).WithOne(e => e.Followed);
+        modelBuilder.Entity<User>().HasMany(e => e.Follows).WithOne(e => e.Follower);
 
         modelBuilder.Entity<Follows>().HasKey(f => new {f.who_id, f.whom_id});
         modelBuilder.Entity<Follows>().ToTable("follower");
 
+        modelBuilder.Entity<Latest>().HasIndex(l => new {l.CreatedAt, l.Value});
     }
 }

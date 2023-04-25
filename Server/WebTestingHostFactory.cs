@@ -36,7 +36,7 @@ public class WebTestingHostFactory<TProgram> : WebApplicationFactory<TProgram> w
             this.testHost.Dispose();
             this.kestrelHost.Dispose();
         }
-        public async Task StartAsync(
+       public async Task StartAsync(
           CancellationToken cancellationToken = default)
         {
             await this.testHost.StartAsync(cancellationToken);

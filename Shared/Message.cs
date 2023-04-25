@@ -12,4 +12,6 @@ public class Message
     public DateTime? PubDate { get; set; }
     [Column("flagged")]
     public int? Flagged { get; set; }
+    
+    public User User { get; set; }
 }
