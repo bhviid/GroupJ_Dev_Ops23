@@ -19,10 +19,8 @@ try
 
     if (builder.Environment.IsDevelopment())
     {
-        Console.WriteLine("Starting Development database");
         builder.Services.AddDbContext<TwitContext>(options =>
-            options.UseInMemoryDatabase(databaseName: "SlimTwit"));
-
+            options.UseNpgsql("Host=localhost;Port=3000;Database=minitwit;Username=ole;Password=veryhardcode;"));
     }
     else
     {

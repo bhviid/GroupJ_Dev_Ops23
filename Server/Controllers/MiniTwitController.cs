@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MiniTwit.Shared;
 using Serilog;
 
@@ -21,7 +22,10 @@ public class MiniTwitController : ControllerBase
     public IActionResult GetAllMessages()
     {
         var (startIndex, pageSize) = GetStartIndexAndPageSizeOrDefaults(Request);
-
+        // var result = _db.Messages.Include(m => m.User)
+        // .OrderByDescending(m => m.PubDate)
+        // .Where(m => m.Flagged == 0)
+        // .Select(m => new  Author(m.User.UserId,m.User.Username, m.Text, ""));
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
@@ -35,7 +39,8 @@ public class MiniTwitController : ControllerBase
        
 		Log.Information("Retrieved {Count} messages for all users with pagination startIndex {StartIndex} and pageSize {PageSize}", total, startIndex, pageSize);
 
-        return Ok(new MsgDataAndLength(total, res));
+        return Ok(res);
+        //return Ok(new MsgDataAndLength(total, res));
     }
 
     [HttpGet]
