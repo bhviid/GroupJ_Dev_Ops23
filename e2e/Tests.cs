@@ -1,14 +1,19 @@
 using Microsoft.Playwright.NUnit;
 using Microsoft.Playwright;
+namespace E2E_test;
 
 [Parallelizable(ParallelScope.Self)]
 [TestFixture]
-public class Tests : PageTest
+public class E2E_test : PageTest
 {
+    string _baseUrl = "http://127.0.0.1:5235/public";
+
     [Test]
     public async Task LogInTest()
     {
-        await Page.GotoAsync("http://0.0.0.0:5235/public");
+        await CreateUser();
+
+        await Page.GotoAsync($"{_baseUrl}");
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "sign in" }).ClickAsync();
 
@@ -27,7 +32,9 @@ public class Tests : PageTest
     [Test]
     public async Task MakeATweetTest()
     {
-        await Page.GotoAsync("http://0.0.0.0:5235/public");
+        await CreateUser();
+
+        await Page.GotoAsync($"{_baseUrl}");
 
         await Page.GetByRole(AriaRole.Link, new() { Name = "sign in" }).ClickAsync();
 
@@ -45,6 +52,37 @@ public class Tests : PageTest
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Share" }).ClickAsync();
 
-        await Expect (Page.GetByText("You succesfully shared a Twit! 🐧")).ToBeEnabledAsync();
+        await Expect(Page.GetByText("You succesfully shared a Twit! 🐧")).ToBeEnabledAsync();
+    }
+    public async Task CreateUser()
+    {
+
+        await Page.GotoAsync($"{_baseUrl}");
+
+        await Page.GetByRole(AriaRole.Link, new() { Name = "sign up" }).ClickAsync();
+
+        await Page.GetByRole(AriaRole.Textbox).First.ClickAsync();
+
+        await Page.GetByRole(AriaRole.Textbox).First.FillAsync("asdasd");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).ClickAsync();
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).FillAsync("asdasd@asdasd.dk");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(1).PressAsync("Tab");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(2).FillAsync("asdasd");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(2).PressAsync("Tab");
+
+        await Page.GetByRole(AriaRole.Textbox).Nth(3).FillAsync("asdasd");
+
+        await Page.Locator("html").ClickAsync();
+
+        await Page.GetByText("Username: E-Mail: Password: Password (repeat): Sign Up").ClickAsync();
+
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Sign Up" }).ClickAsync();
+
+
     }
 }

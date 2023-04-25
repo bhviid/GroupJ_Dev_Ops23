@@ -1,0 +1,87 @@
+global:
+  scrape_interval: 15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds.
+
+  # Attach these extra labels to all timeseries collected by this Prometheus instance.
+  external_labels:
+    monitor: "codelab-monitor"
+
+rule_files:
+  - "prometheus.rules.yml"
+
+scrape_configs:
+  - job_name: "prometheus"
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: "simulation-api"
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: ["146.190.242.170:5235"]
+        labels:
+          group: "production"
+
+  - job_name: "minitwitter-api-netdata"
+
+    metrics_path: "/api/v1/allmetrics"
+    params:
+      # format: prometheus | prometheus_all_hosts
+      # You can use `prometheus_all_hosts` if you want Prometheus to set the `instance` to your hostname instead of IP
+      format: [prometheus]
+      #
+      # source: as-collected | raw | average | sum | volume
+      # default is: average
+      #source: [as-collected]
+      #
+      # server name for this prometheus - the default is the client IP
+      # for Netdata to uniquely identify it
+      #server: ['prometheus1']
+    honor_labels: true
+    static_configs:
+      - targets: ["165.232.119.206:19999"]
+
+  - job_name: "sim-api-netdata"
+
+    metrics_path: "/api/v1/allmetrics"
+    params:
+      # format: prometheus | prometheus_all_hosts
+      # You can use `prometheus_all_hosts` if you want Prometheus to set the `instance` to your hostname instead of IP
+      format: [prometheus]
+      #
+      # source: as-collected | raw | average | sum | volume
+      # default is: average
+      #source: [as-collected]
+      #
+      # server name for this prometheus - the default is the client IP
+      # for Netdata to uniquely identify it
+      #server: ['prometheus1']
+    honor_labels: true
+    static_configs:
+      - targets: ["146.190.242.170:19999"]
+
+  - job_name: "database-server-netdata"
+
+    metrics_path: "/api/v1/allmetrics"
+    params:
+      # format: prometheus | prometheus_all_hosts
+      # You can use `prometheus_all_hosts` if you want Prometheus to set the `instance` to your hostname instead of IP
+      format: [prometheus]
+      #
+      # source: as-collected | raw | average | sum | volume
+      # default is: average
+      #source: [as-collected]
+      #
+      # server name for this prometheus - the default is the client IP
+      # for Netdata to uniquely identify it
+      #server: ['prometheus1']
+    honor_labels: true
+    static_configs:
+      - targets: ["netdata:19999"]
+#################################################################################################
