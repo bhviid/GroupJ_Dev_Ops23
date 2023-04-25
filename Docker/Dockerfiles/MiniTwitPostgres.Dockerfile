@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 # EVEN THOUGH IT SAYS THAT THEY SHOULD BE ABSOLUTE PATHS DO NOT LISTEN TO ITS LIES. THIS IS CORRECT.
 WORKDIR /src/minitwit
 COPY . .
-WORKDIR Server
+WORKDIR /src/minitwit/Server/
 RUN dotnet restore && dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
