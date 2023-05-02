@@ -9,7 +9,7 @@ namespace MiniTwit.Server.Controllers;
 public class MiniTwitController : ControllerBase
 {
     private readonly TwitContext _db;
-    private static DateTime Jan1970 = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+    
     private readonly int _perPage = 30;
 
     public MiniTwitController(TwitContext db)
@@ -25,7 +25,7 @@ public class MiniTwitController : ControllerBase
         var result = (from m in _db.Messages
                       join u in _db.Users on m.AuthorId equals u.UserId
                       where m.Flagged == 0
-                      orderby m.PubDate descending
+                      orderby m.PubDate descending, m.MessageId descending 
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                                 GravatarUrlStringFromEmail(u.Email))
                        ));
@@ -60,7 +60,7 @@ public class MiniTwitController : ControllerBase
                       where m.Flagged == 0 && (
                           u.UserId == userId || flws.Contains(u.UserId)
                       )
-                      orderby m.PubDate descending
+                      orderby m.PubDate descending, m.MessageId descending 
                       select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email,
                                               GravatarUrlStringFromEmail(u.Email))
                       ));
@@ -105,6 +105,7 @@ public class MiniTwitController : ControllerBase
         var author = new Author(user.UserId, user.Username, user.Email, GravatarUrlStringFromEmail(user.Email));
         var timeline = _db.Messages.Where(m => m.AuthorId == user.UserId)
                                     .OrderByDescending(m => m.PubDate)
+                                    .ThenBy(m => m.MessageId)
                                     .Select(m => new MsgDataPair(m,author));
         var total = timeline.Count();
         var t = timeline.Skip(startIndex)

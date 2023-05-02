@@ -16,9 +16,6 @@ public class SlimTwitController : ControllerBase, IDisposable
 
     TwitContext _db;
     DateTime startTime1970 = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-    public static int _latest;
-
-    private int TimeSince1970 => (int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
 
     private IActionResult RequestNotFromSimulatorResponse =>
             Problem(
@@ -126,7 +123,7 @@ public class SlimTwitController : ControllerBase, IDisposable
                     join u in _db.Users
                         on m.AuthorId equals u.UserId
                     where m.Flagged == 0
-                    orderby m.PubDate descending
+                    orderby m.PubDate descending, m.MessageId descending 
                     select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
         var filteredMsgs = FilterMsgs(msgs);
 
@@ -172,7 +169,7 @@ public class SlimTwitController : ControllerBase, IDisposable
         var msgs = (from m in _db.Messages
                     join u in _db.Users on m.AuthorId equals u.UserId
                     where u.UserId == userId && m.Flagged == 0
-                    orderby m.PubDate descending
+                    orderby m.PubDate descending, m.MessageId descending 
                     select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
         
         Log.Information("Retrieved {AmountOfTweets} messages for user {@Username}'s feed}", numberOfMsgs, username);
