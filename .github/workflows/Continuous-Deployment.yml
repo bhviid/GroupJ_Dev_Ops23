@@ -177,5 +177,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
             cd ~/
-            docker service update -d --update-order start-first slimi_slimtwitter
+            docker service update -d slimi_slimtwitter
 
