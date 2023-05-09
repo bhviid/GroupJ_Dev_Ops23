@@ -24,7 +24,7 @@ scrape_configs:
     scrape_interval: 5s
 
     static_configs:
-      - targets: ["146.190.242.170:5235"]
+      - targets: ["prometheus_sim_ip:5235"]
         labels:
           group: "production"
 
@@ -45,7 +45,7 @@ scrape_configs:
       #server: ['prometheus1']
     honor_labels: true
     static_configs:
-      - targets: ["165.232.119.206:19999"]
+      - targets: ["prometheus_minitwit_ip:19999"]
 
   - job_name: "sim-api-netdata"
 
@@ -64,7 +64,7 @@ scrape_configs:
       #server: ['prometheus1']
     honor_labels: true
     static_configs:
-      - targets: ["146.190.242.170:19999"]
+      - targets: ["prometheus_sim_ip:19999"]
 
   - job_name: "database-server-netdata"
 
@@ -83,5 +83,5 @@ scrape_configs:
       #server: ['prometheus1']
     honor_labels: true
     static_configs:
-      - targets: ["netdata:19999"]
+      - targets: ["prometheus_database_ip:19999"]
 #################################################################################################
