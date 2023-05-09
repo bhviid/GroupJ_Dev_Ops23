@@ -31,5 +31,11 @@ public class TwitContext : DbContext
         modelBuilder.Entity<Follows>().ToTable("follower");
 
         modelBuilder.Entity<Latest>().HasIndex(l => new {l.CreatedAt, l.Value});
+
+        modelBuilder.Entity<Latest>()
+            .Property(l => l.CreatedAt)
+                .HasConversion(
+                    c =>  (int) (c - startTime1970).TotalSeconds,
+                    c =>  startTime1970.AddSeconds(c));
     }
 }
