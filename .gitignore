@@ -448,5 +448,5 @@ terraform.rc
 *.tfstate
 .env
 **/Terraform/**
-!main.tf
+!/Terraform/main.tf
 
