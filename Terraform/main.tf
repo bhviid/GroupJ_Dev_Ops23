@@ -32,12 +32,12 @@ resource "digitalocean_tag" "taerteform" {
 
 ################################################ Front end ##########################################################
 resource "digitalocean_droplet" "minitwit" {
-  depends_on = [ digitalocean_droplet.gigatwit-database ]
-  name   = "minitwit-frontend"
-  image  = "docker-18-04"
-  region = "fra1"
-  size   = "s-1vcpu-1gb"
-  tags   = [digitalocean_tag.taerteform.id]
+  depends_on = [digitalocean_droplet.gigatwit-database]
+  name       = "minitwit-frontend"
+  image      = "docker-18-04"
+  region     = "fra1"
+  size       = "s-1vcpu-1gb"
+  tags       = [digitalocean_tag.taerteform.id]
 
   connection {
     user        = "root"
@@ -172,7 +172,7 @@ resource "digitalocean_droplet" "slimtwit-swarm-manager" {
     host        = self.ipv4_address
     type        = "ssh"
     private_key = file(var.pvt_key)
-    timeout     = "2m"
+    timeout     = "10m"
   }
 
   # what this?

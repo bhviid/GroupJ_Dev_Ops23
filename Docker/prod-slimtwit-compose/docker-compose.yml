@@ -12,6 +12,9 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      update_config:
+        delay: 10s
+        order: start-first
 
   netdata:
     image: netdata/netdata
