@@ -33,7 +33,6 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        image: testo/MiniTwit
         args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
     - name: Upload result to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v2
