@@ -70,8 +70,9 @@ public class SlimTwitController : ControllerBase, IDisposable
     [HttpGet]
     public async Task<IActionResult> Latest()
     {
-        var latest = await _db.Latests.OrderByDescending(l => l.CreatedAt).FirstAsync();
-        return Ok(new LatestInfo(latest.Value));
+        var latest = await _db.Latests.OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
+        
+        return Ok(new LatestInfo(latest?.Value ?? 0));
     }
 
     [HttpPost]
