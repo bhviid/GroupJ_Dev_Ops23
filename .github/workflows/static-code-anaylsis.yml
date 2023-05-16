@@ -38,7 +38,7 @@ jobs:
     - name: Upload result to GitHub Code Scanning
       uses: github/codeql-action/upload-sarif@v2
       with:
-        sarif_file: minitwit-snyk.sarif
+        sarif_file: snyk.sarif
         
   slimtwit-image-security:
     name: 🥼 SlimTwit Image security - snyk
