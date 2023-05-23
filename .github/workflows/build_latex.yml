@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '/report'
+      - './report'
   workflow_dispatch:
 jobs:
   build_latex:
