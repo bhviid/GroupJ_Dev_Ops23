@@ -1,7 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+# DO NOT CHANGE THE WORKDIRS THEY ARE VERY PRONE TO ERRORS
+# EVEN THOUGH IT SAYS THAT THEY SHOULD BE ABSOLUTE PATHS DO NOT LISTEN TO ITS LIES. THIS IS CORRECT.
 WORKDIR /src/Simulator
 COPY . .
-WORKDIR /SlimTwit/
+WORKDIR /src/Simulator/SlimTwit/
 RUN dotnet restore && dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base

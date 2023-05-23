@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{float} %to do the [H]
+\usepackage{tabularx} %not sure tbh
+\usepackage{booktabs} %To do the mid/top rules of our table on front
+\usepackage{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{comment}
+\usepackage{soul}
+\graphicspath{ {./images/} }
+\newcommand\tobedeleted[1]{\textcolor{red}{#1}}
+
+
+\bibliographystyle{plain}
+
+
+\title{Group J - DevOps Report}
+\author{Bertram }
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\begin{table}[h]
+    \begin{center}
+        \begin{tabular*}{1\textwidth}{c  c}
+        \toprule
+        Email: & Name: \\
+        \midrule
+        {behv@itu.dk} & {Bertram Kosmo Hviid} \\
+        {paab@itu.dk} & {Patrick Wittendorff Abarzua Neira} \\
+        {tbru@itu.dk} & {Tobias Skovbæk Brund} \\
+        {siar@itu.dk} & {Silas Roien Arildsen} \\
+        \bottomrule
+        \end{tabular*}
+    \end{center}
+\end{table}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{tex/systemperspect}
+\input{tex/processperspect}
+\input{tex/lessonslearned}
+\newpage
+\bibliography{refs} % Entries are in the refs.bib file
+\newpage
+\input{tex/appendix}
+
+
+
+
+\end{document}

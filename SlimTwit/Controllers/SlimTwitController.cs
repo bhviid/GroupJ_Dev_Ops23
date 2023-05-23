@@ -13,13 +13,9 @@ public class SlimTwitController : ControllerBase, IDisposable
     private readonly Counter _addMessageRequests;
     private readonly Histogram _requestDuration;
     private readonly ITimer _requestTimer;
-    
 
     TwitContext _db;
     DateTime startTime1970 = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-    public static int _latest;
-
-    private int TimeSince1970 => (int)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
 
     private IActionResult RequestNotFromSimulatorResponse =>
             Problem(
@@ -50,14 +46,15 @@ public class SlimTwitController : ControllerBase, IDisposable
         return reqAuth.ToString() == "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh";
     }
 
-    private void updateLatest(HttpRequest req)
+    private async Task UpdateLatestAsync(HttpRequest req)
     {
-        // this gonna need some more thinking
-        int newLatest =
-            Int32.TryParse(req.Query["latest"], out newLatest)
-            ? newLatest
+        int newLatestValue =
+            Int32.TryParse(req.Query["latest"], out newLatestValue)
+            ? newLatestValue
             : -1;
-        _latest = newLatest;
+        
+        await _db.AddAsync(new Latest(newLatestValue));
+        await _db.SaveChangesAsync();
     }
 
     //Code duplication
@@ -71,15 +68,17 @@ public class SlimTwitController : ControllerBase, IDisposable
     }
 
     [HttpGet]
-    public ActionResult Latest()
+    public async Task<IActionResult> Latest()
     {
-        return Ok(new LatestInfo(_latest));
+        var latest = await _db.Latests.OrderByDescending(l => l.CreatedAt).FirstOrDefaultAsync();
+        
+        return Ok(new LatestInfo(latest?.Value ?? 0));
     }
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterInfo userInfo)
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
 
         string? err = null;
 
@@ -108,9 +107,9 @@ public class SlimTwitController : ControllerBase, IDisposable
     }
 
     [HttpGet]
-    public IActionResult Msgs()
+    public async Task<IActionResult> Msgs()
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
 
         if (!IsRequestFromSimulator(Request))
         {
@@ -125,7 +124,7 @@ public class SlimTwitController : ControllerBase, IDisposable
                     join u in _db.Users
                         on m.AuthorId equals u.UserId
                     where m.Flagged == 0
-                    orderby m.PubDate descending
+                    orderby m.PubDate descending, m.MessageId descending 
                     select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
         var filteredMsgs = FilterMsgs(msgs);
 
@@ -152,9 +151,9 @@ public class SlimTwitController : ControllerBase, IDisposable
 
     [HttpGet]
     [Route("~/[controller]/msgs/{username}")]
-    public IActionResult MsgsUser(string username)
+    public async Task<IActionResult> MsgsUser(string username)
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
 
         if (!IsRequestFromSimulator(Request))
         {
@@ -171,7 +170,7 @@ public class SlimTwitController : ControllerBase, IDisposable
         var msgs = (from m in _db.Messages
                     join u in _db.Users on m.AuthorId equals u.UserId
                     where u.UserId == userId && m.Flagged == 0
-                    orderby m.PubDate descending
+                    orderby m.PubDate descending, m.MessageId descending 
                     select new MsgDataPair(m, new Author(u.UserId, u.Username, u.Email, null))).Take(numberOfMsgs);
         
         Log.Information("Retrieved {AmountOfTweets} messages for user {@Username}'s feed}", numberOfMsgs, username);
@@ -182,7 +181,7 @@ public class SlimTwitController : ControllerBase, IDisposable
     [HttpPost("~/[controller]/msgs/{username}")]
     public async Task<IActionResult> MsgsCreateAs(string username, CreateFilteredMsg toCreate)
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
         if (!IsRequestFromSimulator(Request))
         {
             return RequestNotFromSimulatorResponse;
@@ -205,11 +204,11 @@ public class SlimTwitController : ControllerBase, IDisposable
     //Little confusing endpoint, it returns the names of people
     // the username follows.
     [HttpGet("{username}")]
-    public IActionResult Fllws(string username)
+    public async Task<IActionResult> Fllws(string username)
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
 
-        //if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
+        if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
 
         var userId = GetUserId(username);
         if (userId is null) return NotFound();
@@ -234,14 +233,12 @@ public class SlimTwitController : ControllerBase, IDisposable
     [HttpPost("~/[controller]/fllws/{username}")]
     public async Task<IActionResult> FllowOrUnfollowAsUser(string username, FollowOrUnFollowReq fReq)
     {
-        updateLatest(Request);
+        await UpdateLatestAsync(Request);
 
-        //if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
+        if(!IsRequestFromSimulator(Request)) return RequestNotFromSimulatorResponse;
 
         var userId = GetUserId(username);
         if (userId is null) return NotFound();
-
-        // string sql;
 
         if (fReq.follow is not null)
         {

@@ -101,10 +101,10 @@ Cleaning and polishing of your ITU-MiniTwit, introduction of DB abstraction laye
 - [x] Add Logging
   - [x] Elastic Search
   - [x] Kibana
-- [ ] Catch a Bug By Looking at the Logs
-  - [ ] Introduce A Bug
-  - [ ] Catch A Bug
-  - [ ] Write Postmortem at '/docs/Postmortems.md'
+- [x] Catch a Bug By Looking at the Logs
+  - [x] Introduce A Bug
+  - [x] Catch A Bug
+  - [x] Write Postmortem at '/docs/Postmortems.md'
  - [ ] MOVED! Write an SLA for Your Own API
  
 ### Week 9
@@ -112,7 +112,7 @@ Cleaning and polishing of your ITU-MiniTwit, introduction of DB abstraction laye
 - [ ] Perform a Security Assessment
   - [ ] A. Risk Identification
   - [ ] B. Risk Analysis
-  - [ ] C. Pen-Test Your System
+  - [x] C. Pen-Test Your System
 - [ ] White Hat Attack The Next Team ( _Niceness_  -[checks]-> Group k _Radiator_)
 
 ### Week 10

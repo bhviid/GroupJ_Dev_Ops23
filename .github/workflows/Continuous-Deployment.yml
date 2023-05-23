@@ -176,7 +176,6 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVAT_KEY }}
           script: |
-            cd ~/docker/
-            docker-compose pull
-            docker-compose up -d
+            cd ~/
+            docker service update -d slimi_slimtwitter
 

@@ -1,15 +1,6 @@
 version: '3.5'
 
 services:
-  minitwitter:
-    image: bhviid/devops
-    container_name: minitwit
-    restart: unless-stopped
-    environment:
-      connection_string: ${connection_string}
-    ports:
-      - "5235:80"
-
   netdata:
     image: netdata/netdata
     container_name: netdata
@@ -29,8 +20,21 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /etc/os-release:/host/etc/os-release:ro
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
 volumes:
   netdataconfig:
   netdatalib:
   netdatacache:
+  postgres-data:

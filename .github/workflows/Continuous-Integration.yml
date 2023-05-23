@@ -36,33 +36,73 @@ jobs:
       - name: Test
         run: dotnet test Server.Test/Server.Test.csproj
         
-  minitwit-image-security:
+  docker-linting:
+    name: 🐋 Docker Lint
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      - name: 🦈 Lint for mintwit image
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+      - name: 🐆 Lint for slimtwit image
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./Docker/Dockerfiles/SlimTwit.Dockerfile
+  
+  minitwit-image-security:
+    name: 🥼 MiniTwit Image security - snyk
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build a Docker image
+      run: docker build -t minitwit -f ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile .
+      continue-on-error: true
     - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
       uses: snyk/actions/docker@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        args: --severity-threshold=medium --file=./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+        image: minitwit
+        args: --severity-threshold=medium
         
   slimtwit-image-security:
+    name: 🥼 SlimTwit Image security - snyk
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+    - name: Build a Docker image
+      run: docker build -t minitwit -f ./Docker/Dockerfiles/SlimTwit.Dockerfile .
+      continue-on-error: true
     - name: 😳 Run Snyk to check Slimtwit image for vulnerabilities
       uses: snyk/actions/docker@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       with:
-        args: --severity-threshold=medium --file=./Docker/Dockerfiles/SlimTwit.Dockerfile
-
-  dotnet-security:
+        image: minitwit
+        args: --severity-threshold=medium
+  ## From the learn.microsoft 
+  #https://learn.microsoft.com/en-us/dotnet/architecture/devops-for-aspnet-developers/actions-codeql
+  analyze:
+    name: 🔬 CodeQL Analyze
     runs-on: ubuntu-latest
+    
+    permissions:
+      security-events: write
+      actions: read
+  
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp' ]
     steps:
-      - uses: actions/checkout@master
-      - name: 😳 Run Snyk to check for vulnerabilities
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with: 
-          args: --severity-threshold=medium --file=MiniTwit.sln
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
