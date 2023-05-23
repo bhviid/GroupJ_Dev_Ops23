@@ -1,0 +1,33 @@
+\section{Lessons Learned}
+\subsection{Evolution and Refactoring}
+We learned a lot about Blazor's pros and cons. On one hand, it works really well with the rest of the .NET ecosystem. On the other, we experienced significant performance issues with Blazor, and sometimes found it to be difficult to work with. In the future, we would consider using a different technology for our front-end.
+\subsection{Operation}
+\subsubsection{Terraform}
+Terraform was a breath of fresh air when working with a larger amount of nodes, compared to Vagrant. It was way easier to define a larger infrastructure in Terraform, since that's the main purpose of the tool. We would have liked to have a way to store our state, such that every member could have done a “terraform destroy” instead of it being only local to the machine that launched the infrastructure. We could presumably have used some kind of
+bucket to store this, but didn't reach a point where we implemented it.
+
+
+\subsubsection{Containerizing}
+Defining infrastructure as code becomes considerably more challenging without the use of containers. This became evident when we transitioned from Vagrant to Terraform, as we had to refactor the entire "Utility" stack to ensure that all services were running within containers(Postgres and Kibana was installed via ssh prior to this). In hindsight, it would have been beneficial and future-proof to have containerized the stack right from the beginning. Doing so would have provided streamlined management and enhanced scalability, making the overall process more efficient and adaptable.
+\subsubsection{Pushing secrets to our repository}
+We had an issue where some secrets were exposed to the public through GitHub. We had a clean record of not pushing any secrets, but when we implemented Terraform, unbeknownst to us, created some files where our secrets were exposed in plain text. We only know this because a tool called GitGuardian wrote us an email and warned us. This tool is not something we opted in for, but we were very grateful that it send us a DM.\footnote{\url{https://github.com/bhviid/GroupJ_Dev_Ops23/commit/1f5951c2ce47ed4c367a7ffd01a405f878afeb3a}}
+\subsection{Maintenance}
+
+\subsubsection{Keeping an eye on the state of deployed machines}
+We ran into an issue where one droplet ran out of storage due to Docker logs being stored indefinitely. Our simulation API container had accumulated 13 GB of docker logs since it had been started, which turned out to be a little problematic because the droplet only had a total of 23 GB of storage. We realized something was wrong with the droplet when we were no longer able to log into our Grafana dashboard, entering a correct password and username would yield errors.
+The solution we found was to limit the size of the log file for the container 
+\footnote{\url{https://github.com/bhviid/GroupJ_Dev_Ops23/commit/38ad93a2724a494d399a140a3fe22fd8038c39d3} }.
+
+\subsubsection{The danger of having a key person with primary access to all infrastructure}
+We had an issue where a person with keys to all our infrastructure wasn't available, and we needed to deploy some infrastructure to our Frontend server and because the person with access to the server was unavailable how we had to abuse Github actions to ssh into a machine and try to fix it that way. \footnote{\url{https://github.com/bhviid/GroupJ_Dev_Ops23/blob/d5614f8a94428a7a0ddd10e24fe6addffa367702/.github/workflows/deploy-without-vagrant.yml}}
+An issue occurred where our simulation API became unavailable afterward, and we thought it was an issue with how we deployed Grafana and Prometheus. It turned out later to be an issue that occurred when we switched from a managed database to self-managed database.
+
+If we had established a team in Digital Ocean instead of relying on a personal account, all team members would have had access to information such as graphs and IP addresses, enabling them to make direct changes. If we were to redo the project, our approach would involve setting up a Digital Ocean team right from the start.
+
+
+\subsubsection{Being Careful with Infrastructure Changes}
+Changes can have significant consequences for the infrastructure of the system. When we made the move from a managed database to a self-managed one, we lost Postgres serial counter, which broke the system for some time.
+
+%\tobedeleted{Link back to respective commit messages, issues, tickets, etc. to illustrate these.}
+\subsection{DevOps}
+The major difference from previous projects has been the way of working way more continuously. The automation of many tedious processes in regard to testing and deployment has made a big positive difference in the way we've worked. It gives freedom to actually spend time developing instead of focusing our efforts on less productive manual tasks. We believe that adopting a collaborative approach between development and operations, rather than focusing solely on one aspect, has made it easier to create seamlessly integrated solutions. By considering the perspectives of both developers and operators during our work, we have been able to design and implement solutions that effectively cater to the needs of both roles.
