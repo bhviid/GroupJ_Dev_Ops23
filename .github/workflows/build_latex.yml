@@ -21,14 +21,14 @@ jobs:
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
-          name: BS_group_j
+          name: BSc_group_j
           path: ./report/main.pdf
       - name: Move PDF file
         run: |
           mkdir -p ./report/build
-          mv ./report/main.pdf ./report/build/BS_group_j.pdf
+          mv ./report/main.pdf ./report/build/BSc_group_j.pdf
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
-            commit_message: Updated Main.pdf
-            file_pattern: './report/build/BS_group_j.pdf'
+            commit_message: Updated BSc_group_j.pdf
+            file_pattern: './report/build/BSc_group_j.pdf'
 
