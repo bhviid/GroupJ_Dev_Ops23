@@ -1,0 +1,46 @@
+\contentsline {section}{\numberline {1}System Perspective}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Design and architecture}{4}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Design}{4}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Deployment architecture}{4}{subsubsection.1.1.2}%
+\contentsline {subsubsection}{\numberline {1.1.3}Code architecture:}{4}{subsubsection.1.1.3}%
+\contentsline {subsection}{\numberline {1.2}The System's Dependencies}{6}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Nuget}{6}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Tools \& Other Dependencies}{6}{subsubsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.3}Important interactions of subsystems}{7}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}The current state of our systems}{8}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}License}{8}{subsection.1.5}%
+\contentsline {section}{\numberline {2}Process Perspective}{8}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Organization of the Team}{8}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Organization of your repository}{9}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Branching strategy}{9}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}CI/CD}{10}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Continuous deployment}{11}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Continuous integration}{11}{subsubsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.5}Development process and tools}{11}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Monitoring}{12}{subsection.2.6}%
+\contentsline {subsubsection}{\numberline {2.6.1}NetData}{12}{subsubsection.2.6.1}%
+\contentsline {subsubsection}{\numberline {2.6.2}Prometheus}{12}{subsubsection.2.6.2}%
+\contentsline {subsubsection}{\numberline {2.6.3}Visualization}{12}{subsubsection.2.6.3}%
+\contentsline {subsection}{\numberline {2.7}Logging}{12}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8} Brief results of the security assessment.}{12}{subsection.2.8}%
+\contentsline {subsection}{\numberline {2.9}Strategy for scaling and load balancing}{12}{subsection.2.9}%
+\contentsline {subsection}{\numberline {2.10}AI-assistants}{13}{subsection.2.10}%
+\contentsline {subsubsection}{\numberline {2.10.1}Explain which system(s) you used during the project.}{13}{subsubsection.2.10.1}%
+\contentsline {subsubsection}{\numberline {2.10.2}Reflect how it supported/hindered your process.}{13}{subsubsection.2.10.2}%
+\contentsline {section}{\numberline {3}Lessons Learned}{13}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Evolution and Refactoring}{13}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Operation}{13}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Terraform}{13}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Containerizing}{13}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Pushing secrets to our repository}{14}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Maintenance}{14}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Keeping an eye on the state of deployed machines}{14}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}The danger of having a key person with primary access to all infrastructure}{14}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Being Careful with Infrastructure Changes}{15}{subsubsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.4}DevOps}{15}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Appendix}{17}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Simulation API deployment diagram}{17}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Front-end deployment diagram}{18}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Utility Server deployment diagram}{19}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Pipeline from guest lecture}{20}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Licenses of dependencies}{21}{subsection.4.5}%
