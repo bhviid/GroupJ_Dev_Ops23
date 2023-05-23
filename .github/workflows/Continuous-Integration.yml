@@ -5,35 +5,104 @@ on:
   push:
     branches:
       - development
+    paths-ignore:
+      - "*.md"
+      - "./.github"
 
   pull_request:
     branches:
       - development
-      - main
-      - master
     paths-ignore:
       - "*.md"
+      - ".github/"
 
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build & Test
+  unit-test:
+    name: 🧪 Unit Test
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
-
       - name: Restore
         run: dotnet restore
-
       - name: Build
         run: dotnet build --configuration Release
-
       - name: Test
-        run: dotnet test
+        run: dotnet test Server.Test/Server.Test.csproj
+        
+  docker-linting:
+    name: 🐋 Docker Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: 🦈 Lint for mintwit image
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile
+      - name: 🐆 Lint for slimtwit image
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./Docker/Dockerfiles/SlimTwit.Dockerfile
+  
+  minitwit-image-security:
+    name: 🥼 MiniTwit Image security - snyk
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build a Docker image
+      run: docker build -t minitwit -f ./Docker/Dockerfiles/MiniTwitPostgres.Dockerfile .
+      continue-on-error: true
+    - name: 😳 Run Snyk to check Minitwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        image: minitwit
+        args: --severity-threshold=medium
+        
+  slimtwit-image-security:
+    name: 🥼 SlimTwit Image security - snyk
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build a Docker image
+      run: docker build -t minitwit -f ./Docker/Dockerfiles/SlimTwit.Dockerfile .
+      continue-on-error: true
+    - name: 😳 Run Snyk to check Slimtwit image for vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      with:
+        image: minitwit
+        args: --severity-threshold=medium
+  ## From the learn.microsoft 
+  #https://learn.microsoft.com/en-us/dotnet/architecture/devops-for-aspnet-developers/actions-codeql
+  analyze:
+    name: 🔬 CodeQL Analyze
+    runs-on: ubuntu-latest
+    
+    permissions:
+      security-events: write
+      actions: read
+  
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp' ]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2

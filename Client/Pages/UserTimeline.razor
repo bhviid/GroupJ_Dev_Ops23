@@ -8,20 +8,20 @@
 @if (uService.ActiveUser is not null)
 {
     <div class=followstatus>
-        @if(uService.ActiveUser.Username == username)
+    @if (uService.ActiveUser.Username == username)
         {
             <span>this is you!</span>
         }
-        else 
+        else
         {
-            if(Followed)
+            if (Followed)
             {
                 <span>You are currently following this user.</span>
                 <a class=unfollow @onclick="HandleUnFollow">
                     Unfollow user
                 </a>
             }
-            else 
+            else
             {
                 <span>You are not yet following this user.</span>
                 <a class=follow @onclick="HandleFollow">
@@ -31,9 +31,9 @@
         }
     </div>
 }
-<TwitDisplayer TwitData="TwitData" />
+<TwitDisplayer Fetcher="@GetTwitData" />
 
-@code 
+@code
 {
     private User? User;
 
@@ -42,32 +42,37 @@
     [Parameter]
     public string? username { get; set; }
 
-    public List<MsgDataPair> TwitData { get; set; } = new List<MsgDataPair>();
-
     protected override async Task OnInitializedAsync()
     {
         User = uService.ActiveUser;
         var httpRes = await http.GetAsync($"/minitwit/{username}");
-
-        if(!httpRes.IsSuccessStatusCode)
+        if (!httpRes.IsSuccessStatusCode)
         {
             navigation.NavigateTo("/public");
             return;
         }
-        var res = await httpRes.Content.ReadFromJsonAsync<MsgDataPair[]>();
 
-        if(User is not null)
+        if (User is not null)
         {
             Followed = await http.GetFromJsonAsync<bool>($"/minitwit/is-follower/{User.Username}/{username}");
         }
-        
-        TwitData = res!.ToList();        
+    }
+
+    public async Task<MsgDataAndLength> GetTwitData(int startIndex, int pageSize)
+    {
+        var httpRes = await http.GetAsync($"/minitwit/{username}?startIndex={startIndex}&pageSize={pageSize}");
+        if(!httpRes.IsSuccessStatusCode)
+        {
+            return new(0, Array.Empty<MsgDataPair>());
+        }
+        var dataPairs = await httpRes.Content.ReadFromJsonAsync<MsgDataAndLength>();
+        return dataPairs is null ? new(0, Array.Empty<MsgDataPair>()) : dataPairs;
     }
 
     private async Task HandleFollow()
     {
         var resp = await http.PostAsJsonAsync<User>($"/minitwit/{username}/follow", User);
-        if(resp.IsSuccessStatusCode)
+        if (resp.IsSuccessStatusCode)
         {
             //Tell the user that they are indeed following the user...
             Followed = true;
@@ -82,7 +87,7 @@
     {
         var resp = await http.PostAsJsonAsync<User>($"/minitwit/{username}/unfollow", User);
 
-        if(resp.IsSuccessStatusCode)
+        if (resp.IsSuccessStatusCode)
         {
             //Tell the user that they are indeed following the user...
             Followed = false;

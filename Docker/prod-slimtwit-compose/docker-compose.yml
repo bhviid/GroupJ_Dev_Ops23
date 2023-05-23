@@ -1,0 +1,44 @@
+version: '3.5'
+
+services:
+  slimtwitter:
+    image: bhviid/slimtwit
+    container_name: slimtwit
+    restart: unless-stopped
+    environment:
+      connection_string: ${connection_string}
+    ports:
+      - "5235:5236"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 10s
+        order: start-first
+
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    ports:
+      - 19999:19999
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - netdataconfig:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    deploy:
+      mode: global
+
+volumes:
+  netdataconfig:
+  netdatalib:
+  netdatacache:

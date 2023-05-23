@@ -1,0 +1,29 @@
+name: e2e-test
+on:
+    workflow_dispatch:
+
+jobs:
+  e2e-test:
+    name: 🧪 e2e Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: restore
+      run: dotnet restore
+
+    - name: build
+      run: dotnet build
+
+    - name: Ensure browsers are installed
+      run: pwsh ./e2e/bin/Debug/net7.0/playwright.ps1 install --with-deps
+
+    - name: Start the server
+      run: dotnet run --project ./Server/MiniTwit.Server.csproj
+
+    - name: Run your tests
+      run: dotnet test ./e2e/e2e.csproj

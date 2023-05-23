@@ -1,0 +1,31 @@
+@inject SpinnerService service
+
+@if (isVisible)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status" />
+    </div>
+}
+
+@code
+{
+    protected bool isVisible = false;
+
+    protected override void OnInitialized()
+    {
+        service.OnShow += SetVisible;
+        service.OnHide += SetNotVisible;
+    }
+
+    public void SetVisible()
+    {
+        isVisible = true;
+        StateHasChanged();
+    }
+
+    public void SetNotVisible()
+    {
+        isVisible = false;
+        StateHasChanged();
+    }
+}

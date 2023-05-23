@@ -23,3 +23,8 @@
 **/values.dev.yaml
 LICENSE
 README.md
+**/Docker
+**/documentation
+**/.github
+**/itu-minitwit
+**/*.md
