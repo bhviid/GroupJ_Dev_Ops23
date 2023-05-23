@@ -21,10 +21,10 @@ jobs:
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
-          name: BS_group_j
+          name: ./build/BS_group_j
           path: ./report/main.pdf
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
             commit_message: Updated Main.pdf
-            file_pattern: './report/main.pdf'
+            file_pattern: './build/BS_group_j.pdf'
 
