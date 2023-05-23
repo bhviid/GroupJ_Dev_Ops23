@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '/Rapport'
+      - '/report'
   workflow_dispatch:
 jobs:
   build_latex:
@@ -14,10 +14,10 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v2
         with:
-          working_directory: ./Rapport
+          working_directory: ./report
           root_file: main.tex
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
-          name: Rapport
-          path: ./Rapport/main.pdf
+          name: BS_group_j
+          path: ./report/main.pdf
