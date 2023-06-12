@@ -116,7 +116,7 @@ resource "digitalocean_droplet" "gigatwit-utility" {
   name       = "gigatwit-utility"
   image      = "docker-18-04"
   region     = "fra1"
-  size       = "s-1vcpu-1gb"
+  size       = "s-2vcpu-4gb"
   tags       = [digitalocean_tag.taerteform.id]
 
   connection {

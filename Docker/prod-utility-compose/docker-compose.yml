@@ -42,6 +42,9 @@ services:
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=1234567890
+      - xpack.license.self_generated.type=basic
     ports:
       - 9200:9200
     volumes:
@@ -54,6 +57,9 @@ services:
       - 5601:5601
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD="1234567890"
+      - KIBANA_PASSWORD="1234567890"
 volumes:
   netdataconfig:
   netdatalib:
