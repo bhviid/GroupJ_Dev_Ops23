@@ -13,6 +13,9 @@ services:
     image: grafana/grafana
     container_name: grafana
     volumes:
+      - ./config/dashboardsProvision.yml:/etc/grafana/provisioning/dashboards/local.yml
+      - ./config/datasource.yml:/etc/grafana/provisioning/datasources/all.yml
+      - ./dashboards:/var/lib/grafana/dashboards
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
     ports:
@@ -40,6 +43,7 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.1
     container_name: elasticsearch
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -53,6 +57,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.7.1
     container_name: kibana
+    restart: unless-stopped
     ports:
       - 5601:5601
     environment:

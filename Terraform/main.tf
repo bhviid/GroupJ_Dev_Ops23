@@ -139,11 +139,32 @@ resource "digitalocean_droplet" "gigatwit-utility" {
     source      = "../Docker/config/utility-prometheus.yml"
     destination = "utility-prometheus.yml"
   }
+
+  provisioner "file" {
+    source      = "../Docker/prod-utility-compose/config/dashboardsProvision.yml"
+    destination = "dashboardsProvision.yml"
+  }
+
+  provisioner "file" {
+    source      = "../Docker/prod-utility-compose/config/datasource.yml"
+    destination = "datasource.yml"
+  }
+
+  provisioner "file" {
+    source      = "../Docker/prod-utility-compose/dashboards/main-dashboard.json"
+    destination = "main-dashboard.json"
+  }
   #prometheus_sim_ip
   #prometheus_minitwit_ip
   provisioner "remote-exec" {
     inline = [
       "mv ./docker ./docker-compose.yml",
+      "mkdir ./dashboards",
+      "mv main-dashboard.json ./dashboards/main-dashboard.json",
+
+      "mkdir ./config",
+      "mv dashboardsProvision.yml ./config/dashboardsProvision.yml",
+      "mv datasource.yml ./config/datasource.yml",
       ## INSERT IP FOR PROMETHEUS SIM API - prometheus_sim_ip
       "sed -i -e 's/prometheus_sim_ip/${digitalocean_droplet.slimtwit-swarm-manager.ipv4_address}/g' utility-prometheus.yml",
       ## INSERT IP FOR NETDATA for database - prometheus_database_ip
