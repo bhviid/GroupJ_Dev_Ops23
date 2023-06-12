@@ -1,0 +1,8 @@
+\begin{thebibliography}{1}
+
+\bibitem{dockerswarm}
+Docker Documentation.
+\newblock Swarm mode key concepts.
+\newblock \url{https://docs.docker.com/engine/swarm/key-concepts/}.
+
+\end{thebibliography}

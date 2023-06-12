@@ -3,20 +3,32 @@ on:
   push:
     branches: [main]
     paths:
-      - '/Rapport'
+      - './report'
   workflow_dispatch:
 jobs:
   build_latex:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
+    permissions:
+      contents: write
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v3
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v2
         with:
-          root_file: ./Rapport/main.tex
+          working_directory: ./report
+          root_file: main.tex
       - name: Upload PDF file
         uses: actions/upload-artifact@v3
         with:
-          name: PDF
-          path: main.pdf
+          name: BSc_group_j
+          path: ./report/main.pdf
+      - name: Move PDF file
+        run: |
+          mkdir -p ./report/build
+          mv ./report/main.pdf ./report/build/BSc_group_j.pdf
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+            commit_message: Updated BSc_group_j.pdf
+            file_pattern: './report/build/BSc_group_j.pdf'
+

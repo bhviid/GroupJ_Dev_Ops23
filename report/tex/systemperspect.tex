@@ -3,14 +3,14 @@
 
 \subsubsection{Design}
 The first step of taking over the Minitwit system required a refactoring to a different technology stack. 
-As a group we chose a full .NET stack because every member of the felt comfortable and experienced with both backend and front-end development using C\#. The group wanted to focus on learning the new tools and working in a “DevOps” manner, and we recognized that experience would simplify the process.
+As a group we chose a full .NET stack because every group member felt comfortable and experienced with both backend and front-end development using C\#. The group wanted to focus on learning the new tools and working in a “DevOps” manner, and we recognized that experience would simplify the process.
 
 For the front-end we went with Blazor-WASM and for our backend we decided used a traditional ASP.NET API. When refactoring the Flask application we did it in small steps making sure to preserve the functionality and style of the original.
 
 \subsubsection{Deployment architecture}
 The overall architecture of our deployed MiniTwit service can be seen on figure \ref{fig:deploy-meta}. As seen on the figure all our nodes in the system are run as virtual machines (or droplets) on DigitalOcean, we even decided to self-host the database to experience the challenges that go along with doing so.
 \\
-As scaling/load balancing was one of the weekly tasks, we introduced it into the architecture in the form of a Docker swarm. More specifically, we deployed our simulation API to a Docker swarm with a total of three nodes, one manager and two workers. Our Docker swarm would replicate NetData globally, a tool we use for monitoring hardware, and only replicate our simulation API on a single node.
+As scaling/load balancing was one of the weekly tasks, we introduced it into the architecture in the form of a Docker swarm. We deployed our simulation API to a Docker swarm with a total of three nodes, one manager and two workers. Our Docker swarm would replicate NetData globally, a tool we use for monitoring hardware, and only replicate our simulation API on a single node.
 %\tobedeleted{why did we choose to only replicate our simAPI on a single node? Cost?}
 When deciding on a scaling strategy, we also discussed the possibility of creating a swarm for our front-end. Ultimately, we decided to keep it a single node, since the cost of instantiating a swarm was too high compared to the amount of front-end users.
 
